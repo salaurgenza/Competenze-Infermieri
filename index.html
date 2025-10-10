@@ -1,0 +1,334 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <div align="center">
+    <h1>Competenze Avanzate</h1>
+    </div>
+    <title>Valutazione Competenze</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 20px;
+            padding: 20px;
+        }
+        h2, h3, h4 {
+            color: #007bff;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .section {
+            margin-top: 20px;
+            padding: 10px;
+            border-left: 5px solid #007bff;
+            background: #e9f5ff;
+            border-radius: 5px;
+        }
+        .competency-group {
+            margin-top: 10px;
+            padding-left: 10px;
+        }
+        label {
+            display: block;
+            margin: 5px 0;
+        }
+        canvas {
+            margin-top: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Inserisci le tue informazioni:</h2>
+        <input type="text" id="nome" placeholder="Nome">
+        <input type="text" id="cognome" placeholder="Cognome">
+        <input type="number" id="esperienza" placeholder="Esperienza in anni">
+        <input type="text" id="matricola" placeholder="Matricola">
+
+    <h3>Competenze:</h3>
+    <div class="section">
+        <h3>Intervento: Cataratta</h3>
+        <div class="competency-group">
+            <h4>Strumentista</h4>
+            <label><input type="checkbox" name="competenza" value="3"> Preparazione avanzata degli strumenti per facoemulsificazione</label>
+            <label><input type="checkbox" name="competenza" value="4"> Conoscenza della corretta configurazione del Centurion al sistema NGENUITY</label>
+            <label><input type="checkbox" name="competenza" value="2"> Conoscenza delle varianti e diversità delle lenti IOL</label>
+            <label><input type="checkbox" name="competenza" value="2"> Corretto montaggio delle lenti IOL</label>
+            <label><input type="checkbox" name="competenza" value="2"> Tipi e diversità dei viscoelastici</label>
+            <label><input type="checkbox" name="competenza" value="3"> Conoscenza degli strumenti e delle check-list dei cesti</label>
+            <label><input type="checkbox" name="competenza" value="4"> Intervento di estrazione extracapsulare e gestione degli strumenti chirurgici</label>
+            <label><input type="checkbox" name="competenza" value="2"> Rimozione della lente IOL</label>
+        </div>
+        <div class="competency-group">
+            <h4>Infermiere Circolante</h4>
+            <label><input type="checkbox" name="competenza" value="3"> Preparazione del campo operatorio</label>
+            <label><input type="checkbox" name="competenza" value="2"> Conoscenza degli strumenti e delle check-list dei cesti</label>
+        </div>
+    </div>
+
+    <!-- Intervento: Vitreo Retina -->
+    <div class="section">
+        <h3>Intervento: Vitreo Retina</h3>
+        <div class="competency-group">
+            <h4>Strumentista</h4>
+            <label><input type="checkbox" name="competenza" value="4"> Conoscenza avanzata degli strumenti per vitrectomia e loro calibrazione</label>
+            <label><input type="checkbox" name="competenza" value="4"> Conoscenza della corretta configurazione del Constellation al sistema NGENUITY</label>
+            <label><input type="checkbox" name="competenza" value="2"> Conoscenza degli strumenti e delle check-list dei cesti</label>
+            <h4>Interventi specifici:</h4>
+            <label><input type="checkbox" name="competenza" value="3"> Distacco della retina</label>
+            <label><input type="checkbox" name="competenza" value="3"> Pucker maculare</label>
+            <label><input type="checkbox" name="competenza" value="3"> Foro maculare</label>
+            <label><input type="checkbox" name="competenza" value="3"> Vitrectomia combinata</label>
+            <label><input type="checkbox" name="competenza" value="3"> Cerchiaggio episclerale tradizionale</label>
+            <label><input type="checkbox" name="competenza" value="3"> Cerchiaggio episclerale non tradizionale</label>
+        </div>
+        <div class="competency-group">
+            <h4>Infermiere Circolante</h4>
+            <label><input type="checkbox" name="competenza" value="3"> Preparazione avanzata degli strumenti di vitrectomia</label>
+            <label><input type="checkbox" name="competenza" value="2"> Conoscenza degli strumenti e delle check-list dei cesti</label>
+            <h4>Interventi specifici:</h4>
+            <label><input type="checkbox" name="competenza" value="3"> Distacco della retina</label>
+            <label><input type="checkbox" name="competenza" value="3"> Pucker maculare</label>
+            <label><input type="checkbox" name="competenza" value="3"> Foro maculare</label>
+            <label><input type="checkbox" name="competenza" value="3"> Vitrectomia combinata</label>
+            <label><input type="checkbox" name="competenza" value="3"> Cerchiaggio episclerale tradizionale</label>
+            <label><input type="checkbox" name="competenza" value="3"> Cerchiaggio episclerale non tradizionale</label>
+        </div>
+    </div>
+
+    <!-- Intervento: Cornea -->
+    <div class="section">
+        <h3>Intervento: Cornea</h3>
+        <div class="competency-group">
+            <h4>Strumentista</h4>
+            <label><input type="checkbox" name="competenza" value="4"> Conoscenza della strumentazione per trapianti PK, DALK, DSAEK, DMEK</label>
+            <label><input type="checkbox" name="competenza" value="3"> Conoscenza degli strumenti e delle check-list dei cesti</label>
+        </div>
+        <div class="competency-group">
+            <h4>Infermiere Circolante</h4>
+            <label><input type="checkbox" name="competenza" value="4"> Gestione della documentazione del tessuto</label>
+            <label><input type="checkbox" name="competenza" value="4"> Corretta identificazione e conservazione della cornea del donatore</label>
+            <label><input type="checkbox" name="competenza" value="3"> Conoscenza degli strumenti e delle check-list dei cesti</label>
+        </div>
+    </div>
+
+    <!-- Intervento: Glaucoma -->
+    <div class="section">
+        <h3>Intervento: Glaucoma</h3>
+        <div class="competency-group">
+            <h4>Strumentista</h4>
+            <label><input type="checkbox" name="competenza" value="4"> Tecniche di trabeculectomia e impianti</label>
+            <label><input type="checkbox" name="competenza" value="4"> Preparazione e gestione dell'Express come valvola impiantabile</label>
+            <label><input type="checkbox" name="competenza" value="4"> Preparazione e gestione dello XEN come valvola impiantabile</label>
+            <label><input type="checkbox" name="competenza" value="4"> Preparazione e gestione della Trabeculectomia</label>
+            <label><input type="checkbox" name="competenza" value="4"> Preparazione e gestione della Valvola di Baerveldt come dispositivo impiantabile</label>
+            <label><input type="checkbox" name="competenza" value="4"> Preparazione e gestione del Preserflo come dispositivo impiantabile</label>
+            <label><input type="checkbox" name="competenza" value="3"> Conoscenza degli strumenti e delle check-list dei cesti</label>
+        </div>
+        <div class="competency-group">
+            <h4>Infermiere Circolante</h4>
+            <label><input type="checkbox" name="competenza" value="4"> Gestione del campo operatorio durante le procedure di glaucoma</label>
+            <label><input type="checkbox" name="competenza" value="4"> Conoscenza degli strumenti e delle check-list dei cesti</label>
+        </div>
+    </div>
+
+    <!-- Intervento: Strabismo -->
+    <div class="section">
+        <h3>Intervento: Strabismo</h3>
+        <div class="competency-group">
+            <h4>Strumentista</h4>
+            <label><input type="checkbox" name="competenza" value="4"> Tecniche di operazioni di strabismo (es. resezione, recessione)</label>
+            <label><input type="checkbox" name="competenza" value="3"> Preparazione e gestione degli strumenti specifici per il trattamento dello strabismo</label>
+            <label><input type="checkbox" name="competenza" value="3"> Conoscenza delle complicazioni associate agli interventi di strabismo</label>
+        </div>
+        <div class="competency-group">
+            <h4>Infermiere Circolante</h4>
+            <label><input type="checkbox" name="competenza" value="4"> Preparazione del campo operatorio per interventi di strabismo</label>
+            <label><input type="checkbox" name="competenza" value="3"> Conoscenza degli strumenti e delle check-list dei cesti</label>
+        </div>
+    </div>
+
+    <!-- Intervento: Oncologia Palpebrale e Congiuntivale -->
+    <div class="section">
+        <h3>Intervento: Oncologia Palpebrale e Congiuntivale</h3>
+        <div class="competency-group">
+            <h4>Strumentista</h4>
+            <label><input type="checkbox" name="competenza" value="4"> Tecniche di asportazione di tumori palpebrali e congiuntivali</label>
+            <label><input type="checkbox" name="competenza" value="3"> Conoscenza degli strumenti e delle tecniche per la ricostruzione palpebrale</label>
+            <label><input type="checkbox" name="competenza" value="3"> Gestione del campionamento per l'analisi istologica</label>
+        </div>
+        <div class="competency-group">
+            <h4>Infermiere Circolante</h4>
+            <label><input type="checkbox" name="competenza" value="4"> Preparazione del campo operatorio per interventi di oncologia palpebrale e congiuntivale</label>
+            <label><input type="checkbox" name="competenza" value="3"> Conoscenza della documentazione necessaria per la gestione dei campioni</label>
+        </div>
+    </div>
+</div>
+    <!-- Aggiungi altre sezioni simili per ciascuna categoria -->
+
+    <button onclick="calcolaValutazione()">Calcola Valutazione</button>
+
+    <h3>Risultato:</h3>
+    <div id="result"></div>
+
+    <h3>Grafico Radar:</h3>
+    <canvas id="radarChart"></canvas>
+
+    <!-- Inserisci qui il codice JavaScript -->
+</body>
+
+<script>
+
+    // Configurazione iniziale del grafico radar
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    const radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ["Cataratta", "Vitreo Retina", "Cornea", "Glaucoma", "Oncologia - Placca", "Palpebre e Congiuntiva", "Strabismo"],
+            datasets: [{
+                label: 'Competenze Selezionate',
+                data: [0, 0, 0, 0, 0, 0, 0],
+                backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                borderColor: 'rgba(46, 204, 113, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 10
+                }
+            }
+        }
+    });
+
+    // Funzione per aggiornare i dati del grafico radar
+    function aggiornaGraficoRadar() {
+        const competenzeSelezionate = Array(7).fill(0); // Una voce per ogni categoria
+
+        // Conta le competenze selezionate per ciascuna categoria
+        document.querySelectorAll('.section').forEach((section, index) => {
+            const competenze = section.querySelectorAll("input[name='competenza']:checked");
+            competenzeSelezionate[index] = competenze.length;
+        });
+
+        // Aggiorna i dati del grafico
+        radarChart.data.datasets[0].data = competenzeSelezionate;
+        radarChart.update();
+    }
+
+    // Funzione per calcolare la valutazione per ciascuna sezione
+    function calcolaValutazioneSezione() {
+        const sezioni = document.querySelectorAll('.section');
+        let valutazioniPerSezione = [];
+        
+        sezioni.forEach((section, index) => {
+            const competenze = section.querySelectorAll("input[name='competenza']:checked");
+            const punteggioSezione = competenze.length;
+            
+            let risultatoSezione = "";
+            if (punteggioSezione >= 10) {
+                risultatoSezione = "AUTONOMO E FORMATORE";
+            } else if (punteggioSezione >= 5) {
+                risultatoSezione = "AUTONOMO";
+            } else if (punteggioSezione >= 2) {
+                risultatoSezione = "SUPERVISIONE INDIRETTA";
+            } else {
+                risultatoSezione = "SUPERVISIONE DIRETTA";
+            }
+            
+            // Memorizza la valutazione per ciascuna sezione
+            valutazioniPerSezione.push({ 
+                sezione: section.querySelector('h3').textContent,
+                valutazione: risultatoSezione,
+                punteggio: punteggioSezione
+            });
+        });
+
+        return valutazioniPerSezione;
+    }
+
+    // Funzione principale per calcolare la valutazione complessiva e per sezione
+    function calcolaValutazione() {
+        const nome = document.getElementById("nome").value;
+        const cognome = document.getElementById("cognome").value;
+        const esperienza = document.getElementById("esperienza").value;
+        const matricola = document.getElementById("matricola").value;
+
+        let punteggioTotale = 0;
+        const competenze = document.querySelectorAll("input[name='competenza']:checked");
+        competenze.forEach(competenza => {
+            punteggioTotale += parseInt(competenza.value);
+        });
+
+        let risultato = "";
+        if (punteggioTotale >= 80) {
+            risultato = "AUTONOMO E FORMATORE";
+        } else if (punteggioTotale >= 40) {
+            risultato = "AUTONOMO";
+        } else if (punteggioTotale >= 20) {
+            risultato = "SUPERVISIONE INDIRETTA";
+        } else {
+            risultato = "SUPERVISIONE DIRETTA";
+        }
+
+        const valutazioniPerSezione = calcolaValutazioneSezione();
+
+        // Mostra il risultato complessivo e per ciascuna sezione
+        let risultatoHTML = `
+            <p>Nome: ${nome} ${cognome}</p>
+            <p>Esperienza: ${esperienza} anni</p>
+            <p>Matricola: ${matricola}</p>
+            <p>Valutazione Finale: ${risultato} (Punteggio totale: ${punteggioTotale})</p>
+        `;
+        risultatoHTML += "<h4>Valutazione per Sezione:</h4><ul>";
+        valutazioniPerSezione.forEach(val => {
+            risultatoHTML += `<li>${val.sezione}: ${val.valutazione} (Punteggio: ${val.punteggio})</li>`;
+        });
+        risultatoHTML += "</ul>";
+
+        document.getElementById("result").innerHTML = risultatoHTML;
+
+        // Aggiorna il grafico radar ogni volta che si calcola la valutazione
+        aggiornaGraficoRadar();
+    }
+
+    // Mantiene il grafico radar sincronizzato con le selezioni
+    document.querySelectorAll("input[name='competenza']").forEach(checkbox => {
+        checkbox.addEventListener('change', aggiornaGraficoRadar);
+    });
+</script>
+</html>
