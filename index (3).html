@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="it" class="font-inter">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Valutazione Competenze</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>body{font-family:'Inter',sans-serif}.transition-all{transition:all .25s ease}</style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
+  <!-- Header -->
+  <header class="bg-blue-700 text-white flex items-center justify-between px-6 py-4 shadow">
+    <div class="flex items-center space-x-4">
+      <h1 class="text-2xl font-semibold">Valutazione Competenze</h1>
+      <span id="badgeReparto" class="text-sm px-2 py-1 bg-blue-800/30 rounded hidden"></span>
+    </div>
+    <div class="flex items-center gap-4">
+      <button id="btnImport" class="text-sm bg-white/10 px-3 py-1 rounded hover:bg-white/20">Importa</button>
+      <button id="themeToggle" class="text-xl">🌙</button>
+    </div>
+  </header>
+
+  <div class="flex min-h-[calc(100vh-64px)]">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white dark:bg-gray-800 shadow-lg p-5 flex flex-col">
+      <h2 class="text-lg font-semibold mb-4 text-blue-700 dark:text-blue-300">Reparti</h2>
+      <nav class="space-y-3">
+        <button class="reparto-btn flex items-center gap-3 w-full text-left px-3 py-2 rounded bg-blue-100 dark:bg-blue-900" data-reparto="Chirurgia Generale">🏥 <span>Chirurgia Generale</span></button>
+        <button class="reparto-btn flex items-center gap-3 w-full text-left px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700" data-reparto="Chirurgie Specialistiche">⚕️ <span>Chirurgie Specialistiche</span></button>
+        <button class="reparto-btn flex items-center gap-3 w-full text-left px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700" data-reparto="Day Surgery Oculistica">👁️ <span>Day Surgery Oculistica</span></button>
+      </nav>
+
+      <div class="mt-6">
+        <button id="btnAddNurseLeft" class="w-full bg-green-600 text-white px-3 py-2 rounded mb-2">➕ Aggiungi infermiere</button>
+        <button id="btnExportAll" class="w-full bg-gray-200 px-3 py-2 rounded mb-2">Esporta tutti (JSON)</button>
+        <button id="btnClearAll" class="w-full bg-red-100 text-red-700 px-3 py-2 rounded">Svuota dati (test)</button>
+      </div>
+
+      <div class="mt-auto text-xs text-center text-gray-500 dark:text-gray-400">© 2025 Valutazione Competenze – Sistema Formativo</div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 p-8 space-y-6 overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl font-semibold text-blue-700 dark:text-blue-300">Scheda – <span id="currentReparto">Chirurgia Generale</span></h2>
+        <div class="flex items-center gap-2">
+          <button id="btnStart" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Inizia valutazione</button>
+          <button id="btnSaveEval" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Salva valutazione</button>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-6">
+        <!-- Anagrafica -->
+        <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-semibold text-blue-700 dark:text-blue-300">Infermiere</h3>
+            <div class="flex gap-2">
+              <button id="btnEditNurse" class="hidden bg-yellow-500 text-white px-3 py-1 rounded">Modifica</button>
+              <button id="btnDeleteNurse" class="hidden bg-red-500 text-white px-3 py-1 rounded">Elimina</button>
+            </div>
+          </div>
+          <div id="nurseCard" class="text-sm text-gray-600 dark:text-gray-300">Nessun infermiere selezionato</div>
+        </section>
+
+        <!-- Competenze -->
+        <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md col-span-1">
+          <h3 class="text-lg font-semibold text-blue-700 dark:text-blue-300 mb-2">Competenze</h3>
+          <p id="instructions" class="text-sm text-gray-500 mb-4">Premi <b>Inizia valutazione</b> per abilitare le sezioni.</p>
+          <div id="competenceContainer" class="space-y-4 opacity-50 pointer-events-none max-h-[520px] overflow-y-auto"></div>
+
+          <div class="mt-4 border-t pt-3">
+            <p id="summaryLevel" class="text-lg font-semibold">-</p>
+            <p id="summaryScore" class="text-sm text-gray-500">Punteggio totale: 0</p>
+          </div>
+        </section>
+
+        <!-- Radar -->
+        <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md col-span-1">
+          <h3 class="text-lg font-semibold text-blue-700 dark:text-blue-300 mb-4">Grafico Radar</h3>
+          <canvas id="radarChart" class="w-full h-64"></canvas>
+          <div class="mt-4 space-y-2">
+            <button id="btnExportJSON" class="w-full bg-gray-200 dark:bg-gray-700 px-3 py-2 rounded">Esporta valutazione (JSON)</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- Lista infermieri -->
+      <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold text-blue-700 dark:text-blue-300">Elenco Infermieri</h3>
+          <div class="text-sm text-gray-500">Seleziona per modificare o valutare</div>
+        </div>
+        <div id="nursesList" class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal per aggiungere/modificare infermiere -->
+  <div id="modalNurse" class="fixed inset-0 bg-black bg-opacity-40 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-96 shadow-lg">
+      <h3 id="modalTitle" class="text-xl font-semibold mb-3 text-blue-700 dark:text-blue-300">Aggiungi Infermiere</h3>
+      <div class="space-y-2">
+        <input id="inputNome" class="w-full p-2 border rounded" placeholder="Nome">
+        <input id="inputCognome" class="w-full p-2 border rounded" placeholder="Cognome">
+        <input id="inputEsperienza" type="number" min="0" class="w-full p-2 border rounded" placeholder="Esperienza (anni)">
+        <input id="inputMatricola" class="w-full p-2 border rounded" placeholder="Matricola">
+        <input id="inputRuolo" class="w-full p-2 border rounded" placeholder="Ruolo">
+      </div>
+      <div class="mt-4 flex justify-end gap-2">
+        <button id="modalCancel" class="px-3 py-2 bg-gray-200 rounded">Annulla</button>
+        <button id="modalSave" class="px-3 py-2 bg-green-600 text-white rounded">Salva</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ---------- Utility & Data ----------
+    function uid() {
+        return 'n_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    }
+
+    const STORAGE_KEY = 'valutazioni_dashboard_v2';
+
+    const defaultData = {
+        'Chirurgia Generale': {
+            infermieri: [],
+            competenze: [
+                {
+                    title: 'Procedure generali',
+                    items: [
+                        { text: 'Gestione preoperatoria paziente', value: 3 },
+                        { text: 'Strumentazione standard', value: 3 },
+                        { text: 'Sicurezza ambientale', value: 2 }
+                    ]
+                },
+                {
+                    title: 'Tecniche specifiche',
+                    items: [
+                        { text: 'Suture avanzate', value: 4 },
+                        { text: 'Gestione drain', value: 3 }
+                    ]
+                }
+            ]
+        },
+
+        'Chirurgie Specialistiche': {
+            infermieri: [],
+            competenze: [
+                {
+                    title: 'Procedure complesse',
+                    items: [
+                        { text: 'Conoscenza strumenti speciali', value: 4 },
+                        { text: 'Protocollo specialistico', value: 3 }
+                    ]
+                }
+            ]
+        },
+
+        'Day Surgery Oculistica': {
+            infermieri: [],
+            competenze: [
+                {
+                    title: 'Facoemulsificazione',
+                    items: [
+                        { text: 'Conoscenza della corretta configurazione del Centurion al sistema NGENUITY', value: 3 },
+                        { text: 'Conoscenza delle varianti e diversità delle lenti IOL', value: 2 },
+                        { text: 'Corretto montaggio delle lenti IOL', value: 2 },
+                        { text: 'Tipi e diversità dei viscoelastici', value: 2 },
+                        { text: 'Conoscenza degli strumenti e delle check-list dei cesti', value: 2 },
+                        { text: 'Intervento di estrazione extracapsulare e gestione degli strumenti chirurgici', value: 2 },
+                        { text: 'Rimozione della lente IOL', value: 2 },
+                        { text: 'Preparazione del campo operatorio', value: 2 }
+                    ]
+                },
+                {
+                    title: 'Vitreo Retina',
+                    items: [
+                        { text: 'Strumentazione vitrectomia', value: 4 },
+                        { text: 'Gestione Constellation', value: 4 }
+                    ]
+                },
+                {
+                    title: 'Cornea',
+                    items: [
+                        { text: 'Conoscenza della strumentazione per trapianti PK, DALK, DSAEK, DMEK', value: 4 },
+                        { text: 'Conoscenza degli strumenti e delle check-list dei cesti', value: 4 }
+                    ]
+                },
+                {
+                    title: 'Glaucoma',
+                    items: [
+                        { text: 'Tecniche di trabeculectomia e impianti', value: 4 },
+                        { text: 'Preparazione e gestione dell/Express come valvola impiantabile', value: 4 }
+                    ]
+                },
+            ]
+        }
+    };
+
+let data = loadData();
+let currentReparto = 'Chirurgia Generale';
+let selectedNurseId = null;
+let isEditing = false;
+
+function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+function loadData(){ const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(defaultData)); }
+
+// ---------- Elements ----------
+const nursesList = document.getElementById('nursesList');
+const nurseCard = document.getElementById('nurseCard');
+const competenceContainer = document.getElementById('competenceContainer');
+const summaryScore = document.getElementById('summaryScore');
+const summaryLevel = document.getElementById('summaryLevel');
+const currentRepartoEl = document.getElementById('currentReparto');
+
+// Modal elements
+const modalNurse = document.getElementById('modalNurse');
+const modalTitle = document.getElementById('modalTitle');
+const inputNome = document.getElementById('inputNome');
+const inputCognome = document.getElementById('inputCognome');
+const inputEsperienza = document.getElementById('inputEsperienza');
+const inputMatricola = document.getElementById('inputMatricola');
+const inputRuolo = document.getElementById('inputRuolo');
+
+// Chart
+const radarCtx = document.getElementById('radarChart').getContext('2d');
+const radarChart = new Chart(radarCtx, {
+  type: 'radar',
+  data: { labels: [], datasets: [{ label: 'Punteggio', data: [], backgroundColor: 'rgba(59,130,246,0.18)', borderColor: '#3b82f6', borderWidth: 1 }] },
+  options: { responsive: true, scales: { r: { beginAtZero: true, max: 30 } } }
+});
+
+// ---------- Rendering ----------
+function renderNurses(){
+  nursesList.innerHTML = '';
+  const list = data[currentReparto].infermieri || [];
+  if(list.length === 0){ nursesList.innerHTML = '<div class="text-sm text-gray-500">Nessun infermiere nel reparto.</div>'; }
+  list.forEach(n => {
+    const card = document.createElement('div');
+    card.className = 'p-3 bg-gray-50 dark:bg-gray-700 rounded shadow-sm hover:scale-[1.01] transition-transform cursor-pointer';
+    card.innerHTML = `<div class='font-semibold'>${n.nome} ${n.cognome}</div><div class='text-xs text-gray-500'>${n.ruolo || ''} ${n.matricola ? ' - ' + n.matricola : ''}</div>`;
+    card.addEventListener('click', ()=> selectNurse(n.id));
+    nursesList.appendChild(card);
+  });
+}
+
+function renderCompetences(){
+  competenceContainer.innerHTML = '';
+  const comps = data[currentReparto].competenze;
+  comps.forEach((sec, sIdx)=>{
+    const secWrap = document.createElement('div'); secWrap.className = 'border rounded p-3 bg-white/50 dark:bg-gray-800';
+    const header = document.createElement('div'); header.className = 'flex items-center justify-between cursor-pointer';
+    header.innerHTML = `<h4 class='font-semibold'>${sec.title}</h4><button class='text-xs text-gray-500'>Apri</button>`;
+    const list = document.createElement('div'); list.className = 'mt-2 space-y-2 hidden';
+    sec.items.forEach((it, iIdx)=>{
+      const id = `c_${sIdx}_${iIdx}`;
+      const row = document.createElement('label'); row.className = 'flex items-center gap-3 text-sm';
+      row.innerHTML = `<input type='checkbox' id='${id}' data-section='${sIdx}' data-value='${it.value}' class='competenza-checkbox'><span>${it.text}</span>`;
+      list.appendChild(row);
+    });
+    header.addEventListener('click', ()=> list.classList.toggle('hidden'));
+    secWrap.appendChild(header); secWrap.appendChild(list); competenceContainer.appendChild(secWrap);
+  });
+  // bind change
+  document.querySelectorAll('.competenza-checkbox').forEach(cb=> cb.addEventListener('change', updateScores));
+}
+
+function updateNurseCard(){
+  if(!selectedNurseId){ nurseCard.innerHTML = 'Nessun infermiere selezionato'; document.getElementById('btnEditNurse').classList.add('hidden'); document.getElementById('btnDeleteNurse').classList.add('hidden'); return; }
+  const n = data[currentReparto].infermieri.find(x=> x.id===selectedNurseId);
+  if(!n) return;
+  nurseCard.innerHTML = `
+    <div class='font-medium text-lg'>${n.nome} ${n.cognome}</div>
+    <div class='text-sm text-gray-600'>${n.ruolo || '-'} | Matricola: ${n.matricola || '-'}</div>
+    <div class='text-sm mt-2'>Esperienza: ${n.esperienza || '-'} anni</div>
+    <div class='text-sm mt-2 text-gray-500'>Ultima valutazione: ${n.ultimaValutazione ? n.ultimaValutazione.data : 'Mai'}</div>`;
+  document.getElementById('btnEditNurse').classList.remove('hidden'); document.getElementById('btnDeleteNurse').classList.remove('hidden');
+}
+
+function selectReparto(name){
+  currentReparto = name; currentRepartoEl.textContent = name; selectedNurseId = null; document.getElementById('badgeReparto').classList.add('hidden');
+  renderNurses(); renderCompetences(); resetScores(); updateNurseCard();
+}
+
+function selectNurse(id){ selectedNurseId = id; updateNurseCard(); loadNurseEvaluation(); }
+
+// ---------- Modal ----------
+function openNurseModal(edit=false){
+  isEditing = edit;
+  modalNurse.classList.remove('hidden'); modalNurse.classList.add('flex');
+  if(edit && selectedNurseId){
+    const n = data[currentReparto].infermieri.find(x=> x.id===selectedNurseId);
+    modalTitle.textContent = 'Modifica infermiere'; inputNome.value = n.nome; inputCognome.value = n.cognome; inputEsperienza.value = n.esperienza || '';
+    inputMatricola.value = n.matricola || ''; inputRuolo.value = n.ruolo || '';
+  } else {
+    modalTitle.textContent = 'Aggiungi infermiere'; inputNome.value = ''; inputCognome.value = ''; inputEsperienza.value=''; inputMatricola.value=''; inputRuolo.value='';
+  }
+}
+function closeNurseModal(){ modalNurse.classList.add('hidden'); modalNurse.classList.remove('flex'); }
+
+// ---------- Actions ----------
+document.getElementById('btnAddNurseLeft').addEventListener('click', ()=> openNurseModal(false));
+document.getElementById('btnAddNurseLeft').addEventListener('keydown', (e)=>{ if(e.key==='Enter') openNurseModal(false); });
+document.getElementById('btnEditNurse').addEventListener('click', ()=>{
+  if(!selectedNurseId){ alert('Seleziona un infermiere'); return; } openNurseModal(true);
+});
+document.getElementById('modalCancel').addEventListener('click', closeNurseModal);
+document.getElementById('modalSave').addEventListener('click', ()=>{
+  const nome = inputNome.value.trim(); const cognome = inputCognome.value.trim();
+  if(!nome || !cognome){ alert('Nome e cognome obbligatori'); return; }
+  if(isEditing && selectedNurseId){
+    const idx = data[currentReparto].infermieri.findIndex(x=> x.id===selectedNurseId);
+    const updated = { ...data[currentReparto].infermieri[idx], nome, cognome, esperienza: inputEsperienza.value, matricola: inputMatricola.value, ruolo: inputRuolo.value };
+    data[currentReparto].infermieri[idx] = updated;
+    saveData(); renderNurses(); updateNurseCard(); closeNurseModal();
+  } else {
+    const newN = { id: uid(), nome, cognome, esperienza: inputEsperienza.value, matricola: inputMatricola.value, ruolo: inputRuolo.value, valutazioni: [], ultimaValutazione: null };
+    data[currentReparto].infermieri.push(newN); saveData(); renderNurses(); selectNurse(newN.id); closeNurseModal();
+  }
+});
+
+document.getElementById('btnDeleteNurse').addEventListener('click', ()=>{
+  if(!selectedNurseId) return; if(!confirm('Confermi eliminazione infermiere?')) return;
+  data[currentReparto].infermieri = data[currentReparto].infermieri.filter(x=> x.id!==selectedNurseId); selectedNurseId = null; saveData(); renderNurses(); updateNurseCard(); resetScores();
+});
+
+// Start evaluation
+document.getElementById('btnStart').addEventListener('click', ()=>{
+  if(!selectedNurseId){ alert('Seleziona un infermiere prima di iniziare'); return; }
+  competenceContainer.classList.remove('opacity-50'); competenceContainer.classList.remove('pointer-events-none'); document.getElementById('instructions').textContent = 'Compila le competenze selezionando le checkbox.';
+});
+
+// Save evaluation
+document.getElementById('btnSaveEval').addEventListener('click', ()=>{
+  if(!selectedNurseId){ alert('Seleziona infermiere'); return; }
+  const sectionScores = computeSectionScores(); const total = sectionScores.reduce((a,b)=>a+b,0); const level = scoreToLevel(total);
+  const nurse = data[currentReparto].infermieri.find(x=> x.id===selectedNurseId);
+  const valutazione = { data: (new Date()).toLocaleString(), reparto: currentReparto, sections: sectionScores, total, level };
+  nurse.valutazioni = nurse.valutazioni || []; nurse.valutazioni.push(valutazione); nurse.ultimaValutazione = valutazione; saveData(); updateNurseCard(); alert('Valutazione salvata');
+});
+
+// Export
+document.getElementById('btnExportAll').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(data, null,2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='valutazioni_all.json'; a.click(); URL.revokeObjectURL(url);
+});
+
+document.getElementById('btnExportJSON').addEventListener('click', ()=>{
+  if(!selectedNurseId){ alert('Seleziona infermiere'); return; }
+  const nurse = data[currentReparto].infermieri.find(x=> x.id===selectedNurseId); const blob = new Blob([JSON.stringify({nurse, reparto: currentReparto}, null,2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download=`${nurse.nome}_${nurse.cognome}_valutazione.json`; a.click(); URL.revokeObjectURL(url);
+});
+
+// Clear (for testing)
+document.getElementById('btnClearAll').addEventListener('click', ()=>{ if(!confirm('Svuotare tutti i dati locali?')) return; localStorage.removeItem(STORAGE_KEY); data = loadData(); selectReparto(currentReparto); });
+
+// Compute scores
+function computeSectionScores(){
+  const sections = data[currentReparto].competenze; const scores = [];
+  sections.forEach((s, sIdx)=>{
+    const boxes = Array.from(document.querySelectorAll(`.competenza-checkbox[data-section='${sIdx}']`)); let sum=0; boxes.forEach(b=>{ if(b.checked) sum += Number(b.dataset.value||0); }); scores.push(sum);
+  });
+  return scores;
+}
+
+function updateScores(){
+  const scores = computeSectionScores(); const total = scores.reduce((a,b)=>a+b,0);
+  summaryScore.textContent = `Punteggio totale: ${total}`; summaryLevel.textContent = scoreToLevel(total);
+  radarChart.data.labels = data[currentReparto].competenze.map(s=> s.title); radarChart.data.datasets[0].data = scores; radarChart.update();
+}
+
+function scoreToLevel(total){ if(total>=20) return 'AUTONOMO E FORMATORE'; if(total>=10) return 'AUTONOMO'; if(total>=5) return 'SUPERVISIONE INDIRETTA'; return 'SUPERVISIONE DIRETTA'; }
+
+function resetScores(){ document.querySelectorAll('.competenza-checkbox').forEach(cb=> cb.checked=false); updateScores(); document.getElementById('instructions').textContent = 'Premi Inizia valutazione per abilitare le sezioni.'; competenceContainer.classList.add('opacity-50'); competenceContainer.classList.add('pointer-events-none'); }
+
+// Load last evaluation
+function loadNurseEvaluation(){ renderCompetences(); const nurse = data[currentReparto].infermieri.find(x=> x.id===selectedNurseId); if(!nurse || !nurse.ultimaValutazione) { resetScores(); return; }
+  const last = nurse.ultimaValutazione; data[currentReparto].competenze.forEach((sec, sIdx)=>{
+    let remaining = last.sections[sIdx] || 0;
+    sec.items.forEach((it, iIdx)=>{
+      const cb = document.querySelector(`.competenza-checkbox[id='c_${sIdx}_${iIdx}']`);
+      if(!cb) return;
+      if(remaining >= Number(cb.dataset.value)) { cb.checked = true; remaining -= Number(cb.dataset.value); } else cb.checked = false;
+    });
+  });
+  updateScores();
+}
+
+// Reparto buttons
+document.querySelectorAll('.reparto-btn').forEach(btn=> btn.addEventListener('click', e=>{ document.querySelectorAll('.reparto-btn').forEach(b=> b.classList.remove('bg-blue-100','dark:bg-blue-900')); e.currentTarget.classList.add('bg-blue-100','dark:bg-blue-900'); selectReparto(e.currentTarget.dataset.reparto); }));
+
+// Theme toggle
+const themeToggle = document.getElementById('themeToggle'); themeToggle.addEventListener('click', ()=>{ document.documentElement.classList.toggle('dark'); themeToggle.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙'; });
+
+// Init
+selectReparto(currentReparto); renderCompetences(); renderNurses(); updateScores();
+</script>
+</body>
+</html>
