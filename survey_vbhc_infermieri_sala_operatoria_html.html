@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Survey VBHC - Infermieri Sala Operatoria (Pilot 30 item)</title>
+  <style>
+    :root{--bg:#0f172a;--card:#0b1220;--muted:#9aa4b2;--accent:#0ea5a4;--glass: rgba(255,255,255,0.03)}
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial; margin:0; background:linear-gradient(180deg,#07102a 0%, #071022 100%); color:#e6eef6; padding:28px}
+    .container{max-width:1000px;margin:0 auto}
+    header{display:flex;gap:16px;align-items:center;margin-bottom:18px}
+    h1{font-size:20px;margin:0}
+    p.lead{margin:0;color:var(--muted)}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6); margin-bottom:14px}
+    .grid{display:grid;grid-template-columns:1fr 220px;gap:14px}
+    label.block{display:block;margin-bottom:8px;color:var(--muted);font-size:13px}
+    input[type=text], input[type=email], select{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    .group{margin-bottom:8px}
+    .items{margin-top:8px}
+    .item{padding:10px;border-radius:8px;background:var(--glass);display:flex;align-items:center;gap:12px;margin-bottom:8px}
+    .q{flex:1;font-size:14px}
+    .radios{display:flex;gap:6px}
+    .radios input{display:none}
+    .radios label{background:rgba(255,255,255,0.03);padding:6px 8px;border-radius:6px;cursor:pointer;border:1px solid transparent;font-size:13px}
+    .radios input:checked + label{background:var(--accent);color:#071022;border-color:rgba(255,255,255,0.06)}
+    .btn{display:inline-block;padding:8px 12px;border-radius:8px;background:var(--accent);color:#071022;border:none;cursor:pointer;font-weight:600}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+    .results{display:flex;gap:12px;align-items:center}
+    .metric{background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;min-width:160px}
+    .metric h3{margin:0;font-size:14px}
+    .metric p{margin:6px 0 0;font-weight:700;font-size:18px}
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+    .small{font-size:13px;color:var(--muted)}
+    .download-link{color:var(--accent);text-decoration:underline;cursor:pointer}
+    @media (max-width:880px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Survey VBHC – Infermieri Sala Operatoria (30 item pilota)</h1>
+        <p class="lead">Autovalutazione per mappare competenze tecniche, relazionali e organizzative. Scala 1–5.</p>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="grid">
+        <div>
+          <div class="group">
+            <label class="block">Nome e cognome</label>
+            <input id="nome" type="text" placeholder="Inserisci nome e cognome" />
+          </div>
+          <div class="group">
+            <label class="block">Ruolo</label>
+            <select id="ruolo">
+              <option value="Strumentista">Strumentista</option>
+              <option value="Circolante">Circolante</option>
+              <option value="Anestesia">Anestesia</option>
+              <option value="Coordinatore">Coordinatore</option>
+              <option value="Altro">Altro</option>
+            </select>
+          </div>
+          <div class="group">
+            <label class="block">Anni di esperienza in sala operatoria</label>
+            <input id="anni" type="text" placeholder="es: 5" />
+          </div>
+          <div class="group">
+            <label class="block">Specialità prevalente</label>
+            <input id="spec" type="text" placeholder="es: ortopedia, cardio" />
+          </div>
+        </div>
+        <div>
+          <div class="small">Istruzioni</div>
+          <p class="small">Rispondi su scala 1 (mai) – 5 (sempre). Premi <strong>Calcola</strong> per ottenere i punteggi e il Vₛₒ. Puoi esportare i risultati in CSV.</p>
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button id="calcola" class="btn">Calcola Vₛₒ</button>
+            <button id="reset" class="btn ghost">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <form id="survey" class="card">
+      <h2 style="margin-top:0;font-size:16px">Item – Competenze tecniche (1–10)</h2>
+      <div class="items" id="items"></div>
+    </form>
+
+    <div class="card results" id="resultsCard" style="display:none">
+      <div class="metric">
+        <h3>Competenze tecniche (Cₜ)</h3>
+        <p id="ct">-</p>
+      </div>
+      <div class="metric">
+        <h3>Competenze relazionali (Cᵣ)</h3>
+        <p id="cr">-</p>
+      </div>
+      <div class="metric">
+        <h3>Competenze gestionali (C𝓰)</h3>
+        <p id="cg">-</p>
+      </div>
+      <div class="metric">
+        <h3>Vₛₒ (valore)</h3>
+        <p id="vso">-</p>
+      </div>
+      <div style="flex:1">
+        <h3>Interpretazione</h3>
+        <p id="interpret" class="small">-</p>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button id="export" class="btn">Esporta CSV</button>
+          <button id="copy" class="btn ghost">Copia riepilogo</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="small">Questa è una versione pilota del questionario adattata al contesto di sala operatoria. Puoi personalizzare pesi e interpretazioni.</div>
+    </footer>
+  </div>
+
+  <script>
+    // Testo degli item (italiano). 1-10 tecnici, 11-20 relazionali, 21-30 gestionali
+    const itemsText = [
+      // 1-10 Tecnici
+      'Riesco a preparare autonomamente il set chirurgico in base al tipo di intervento.',
+      'Mantengo il campo sterile anche in condizioni operative complesse.',
+      'Conosco in dettaglio il funzionamento e la manutenzione degli strumenti chirurgici.',
+      'Applico correttamente i protocolli di sicurezza per la prevenzione delle infezioni.',
+      'Riconosco tempestivamente i segnali di contaminazione e intervengo in modo appropriato.',
+      'Gestisco in autonomia il conteggio dei materiali prima e dopo l’intervento.',
+      'Mi adatto rapidamente a diverse specialità chirurgiche mantenendo precisione e attenzione.',
+      'Collaboro efficacemente con l’anestesista per garantire la sicurezza del paziente.',
+      'Riesco a identificare strumenti o materiali non conformi prima dell’uso.',
+      'Mi assumo la responsabilità di segnalare eventi avversi o quasi errori intraoperatori.',
+      // 11-20 Relazionali
+      'Partecipo attivamente al briefing e al debriefing operatorio.',
+      'Comunico in modo chiaro e tempestivo con il team durante l’intervento.',
+      'Mi assicuro che tutti i membri dell’équipe comprendano le fasi critiche della procedura.',
+      'Mostro empatia e rassicurazione verso il paziente nel preoperatorio.',
+      'Gestisco situazioni di stress mantenendo un linguaggio assertivo e rispettoso.',
+      'Offro supporto emotivo ai colleghi in momenti di tensione.',
+      'Promuovo la cultura della sicurezza incoraggiando la segnalazione senza giudizio.',
+      'Favorisco la collaborazione interprofessionale (chirurgo, anestesista, OSS, strumentista).',
+      'Mi adopero per migliorare la comunicazione nei passaggi di consegna.',
+      'Riconosco e rispetto le competenze e i ruoli di ciascun membro del team.',
+      // 21-30 Gestionali
+      'Riesco a organizzare la sala riducendo i tempi morti tra un intervento e l’altro.',
+      'Gestisco correttamente le scorte di materiali e dispositivi.',
+      'Adatto la disposizione della sala in base al tipo di intervento.',
+      'Collaboro alla pianificazione delle attività operatorie giornaliere.',
+      'Mantengo la calma e l’efficienza durante le emergenze intraoperatorie.',
+      'Riesco a prendere decisioni rapide in base alla priorità clinica.',
+      'Mi aggiorno costantemente sulle nuove tecnologie e procedure chirurgiche.',
+      'Gestisco in autonomia la documentazione infermieristica e operatoria.',
+      'Contribuisco al miglioramento continuo dei processi in sala operatoria.',
+      'Mi impegno a trasferire conoscenze e competenze ai colleghi più giovani.'
+    ];
+
+    const itemsContainer = document.getElementById('items');
+    // build items
+    itemsText.forEach((txt, idx) => {
+      const n = idx+1;
+      const item = document.createElement('div'); item.className='item';
+      const q = document.createElement('div'); q.className='q'; q.textContent = n + '. ' + txt;
+      const radios = document.createElement('div'); radios.className='radios';
+      for(let v=1; v<=5; v++){
+        const id = 'q'+n+'v'+v;
+        const input = document.createElement('input'); input.type='radio'; input.name='q'+n; input.id=id; input.value=v;
+        if(v===5) input.checked = true; // default
+        const lab = document.createElement('label'); lab.htmlFor=id; lab.textContent = v;
+        radios.appendChild(input); radios.appendChild(lab);
+      }
+      item.appendChild(q); item.appendChild(radios);
+      itemsContainer.appendChild(item);
+    });
+
+    function readRange(start, end){
+      const vals = [];
+      for(let i=start;i<=end;i++){
+        const v = document.querySelector('input[name=q'+i+']:checked');
+        vals.push(v?Number(v.value):0);
+      }
+      const mean = vals.reduce((a,b)=>a+b,0)/vals.length;
+      return Number(mean.toFixed(2));
+    }
+
+    function interpret(v){
+      if(v<=2.5) return 'Basso — competenze da sviluppare; possibile impatto negativo su sicurezza ed efficienza.';
+      if(v<=3.5) return 'Medio — competenze di base consolidate; utile formazione mirata.';
+      if(v<=4.2) return 'Buono — buon equilibrio tecnico-relazionale; valore generato soddisfacente.';
+      return 'Eccellente — alto valore operativo e clinico generato.';
+    }
+
+    document.getElementById('calcola').addEventListener('click', (e)=>{
+      e.preventDefault();
+      const ct = readRange(1,10);
+      const cr = readRange(11,20);
+      const cg = readRange(21,30);
+      const vso = Number((ct*0.4 + cr*0.3 + cg*0.3).toFixed(2));
+      document.getElementById('ct').textContent = ct;
+      document.getElementById('cr').textContent = cr;
+      document.getElementById('cg').textContent = cg;
+      document.getElementById('vso').textContent = vso;
+      document.getElementById('interpret').textContent = interpret(vso);
+      document.getElementById('resultsCard').style.display='flex';
+    });
+
+    document.getElementById('reset').addEventListener('click', ()=>{
+      document.querySelectorAll('input[type=radio]').forEach(r=>{ r.checked = false; });
+      // set default 5
+      for(let i=1;i<=30;i++){ document.querySelector('input[name=q'+i+'][value="5"]').checked=true; }
+      document.getElementById('resultsCard').style.display='none';
+      document.getElementById('nome').value=''; document.getElementById('anni').value=''; document.getElementById('spec').value='';
+    });
+
+    document.getElementById('export').addEventListener('click', (e)=>{
+      e.preventDefault();
+      const nome = document.getElementById('nome').value || '';
+      const ruolo = document.getElementById('ruolo').value || '';
+      const anni = document.getElementById('anni').value || '';
+      const spec = document.getElementById('spec').value || '';
+      const ct = readRange(1,10);
+      const cr = readRange(11,20);
+      const cg = readRange(21,30);
+      const vso = Number((ct*0.4 + cr*0.3 + cg*0.3).toFixed(2));
+      const rows = [];
+      rows.push(['Nome','Ruolo','AnniEsperienza','Specialita','Ct','Cr','Cg','Vso']);
+      rows.push([nome,ruolo,anni,spec,ct,cr,cg,vso]);
+      // append item-level
+      const headerItems = ['ItemNumber','ItemText','Score'];
+      rows.push([]);
+      rows.push(headerItems);
+      for(let i=1;i<=30;i++){
+        const text = itemsText[i-1].replace(/,/g,';');
+        const s = document.querySelector('input[name=q'+i+']:checked');
+        rows.push([i, text, s?Number(s.value):'']);
+      }
+      // build csv
+      const csv = rows.map(r=>r.join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = (nome? (nome+'_') : 'response_') + 'vbhc_sala_operatoria.csv'; document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('copy').addEventListener('click', ()=>{
+      const nome = document.getElementById('nome').value || '—';
+      const ruolo = document.getElementById('ruolo').value || '—';
+      const ct = readRange(1,10);
+      const cr = readRange(11,20);
+      const cg = readRange(21,30);
+      const vso = Number((ct*0.4 + cr*0.3 + cg*0.3).toFixed(2));
+      const txt = `Nome: ${nome}\nRuolo: ${ruolo}\nCt: ${ct}\nCr: ${cr}\nCg: ${cg}\nVso: ${vso}\nInterpretazione: ${interpret(vso)}`;
+      navigator.clipboard?.writeText(txt).then(()=>{ alert('Riepilogo copiato negli appunti'); }).catch(()=>{ alert('Copia non disponibile'); });
+    });
+
+    // set defaults
+    document.getElementById('reset').click();
+  </script>
+</body>
+</html>
