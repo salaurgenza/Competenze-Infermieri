@@ -11,16 +11,16 @@
 </head>
 <body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
   <!-- Header -->
-  <header class="bg-blue-700 text-white flex items-center justify-between px-6 py-4 shadow">
-    <div class="flex items-center space-x-4">
-      <h1 class="text-2xl font-semibold">Valutazione Competenze</h1>
-      <span id="badgeReparto" class="text-sm px-2 py-1 bg-blue-800/30 rounded hidden"></span>
-    </div>
-    <div class="flex items-center gap-4">
-      <button id="btnImport" class="text-sm bg-white/10 px-3 py-1 rounded hover:bg-white/20">Importa</button>
-      <button id="themeToggle" class="text-xl">🌙</button>
-    </div>
-  </header>
+    <header class="bg-blue-700 text-white flex items-center justify-between px-6 py-4 shadow">
+        <div class="flex items-center space-x-4">
+            <h1 class="text-2xl font-semibold">Valutazione Competenze</h1>
+            <span id="badgeReparto" class="text-sm px-2 py-1 bg-blue-800/30 rounded hidden"></span>
+        </div>
+        <div class="flex items-center gap-4">
+            <button id="btnImport" class="text-sm bg-white/10 px-3 py-1 rounded hover:bg-white/20">VBHC</button>
+            <button id="themeToggle" class="text-xl">🌙</button>
+        </div>
+    </header>
 
   <div class="flex min-h-[calc(100vh-64px)]">
     <!-- Sidebar -->
@@ -414,7 +414,12 @@ document.querySelectorAll('.reparto-btn').forEach(btn=> btn.addEventListener('cl
 const themeToggle = document.getElementById('themeToggle'); themeToggle.addEventListener('click', ()=>{ document.documentElement.classList.toggle('dark'); themeToggle.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙'; });
 
 // Init
-selectReparto(currentReparto); renderCompetences(); renderNurses(); updateScores();
+    selectReparto(currentReparto); renderCompetences(); renderNurses(); updateScores();
+
+    //link VBHC
+    document.getElementById('btnImport').addEventListener('click', () => {
+        window.open('survey_vbhc_infermieri_sala_operatoria_html.html', '_blank');
+    });
 </script>
 </body>
 </html>
