@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="it" class="font-inter">
 <head>
     <meta charset="utf-8" />
@@ -160,7 +160,35 @@
         </div>
     </div>
 
-    <script>// ---------- Utility & Data ----------
+    <script>// === FUNZIONI BACKEND FLASK / SQLITE ===
+        async function salvaInfermieriNelDB(infermiere) {
+            try {
+                const res = await fetch("/api/inserisci_infermiere", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(infermiere)
+                });
+                console.log("Infermiere salvato su DB:", await res.json());
+            } catch (e) {
+                console.error("Errore salvataggio infermiere su DB:", e);
+            }
+        }
+
+        async function salvaValutazioneNelDB(valutazione) {
+            try {
+                const res = await fetch("/api/inserisci_valutazione", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(valutazione)
+                });
+                console.log("Valutazione salvata su DB:", await res.json());
+            } catch (e) {
+                console.error("Errore salvataggio valutazione su DB:", e);
+            }
+        }
+
+
+        // ---------- Utility & Data ----------
         function uid() {
             return 'n_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
         }
@@ -192,33 +220,107 @@
                 {
                     key: 'Chirurgia Addominale',
                     questions: [
-                        'Esecuzione di procedure chirurgiche a complessità media (es. ernia, colecistectomia laparoscopica)',
-                        'Assistenza in procedure chirurgiche maggiori (es. resezioni intestinali, chirurgia oncologica)',
-                        'Gestione strumentale in emergenza/urgenza non traumatica'
+                        'LAPAROTOMIA ESPLORATIVA, ERNIOPLASTICA INGUINALE, ERNIOPLASTICA OMBELICALE, PLASTICA DI PARETE CON PROTESI',
+                        'LAPAROSCOPIA ESPLORATIVA, ERNIOPLASTICA INGUINALE, COLECISTECTOMIA, APPENDICECTOMIA, LPS DIAGNOSTICA CON O SENZA PIPAC, LPS DIAGNOSTICA CON O SENZA BIOPSIE',
+                        'CONFEZIONAMENTO ILEOSTOMIA, CONFEZIONAMENTO COLONSTOMIA, CONFEZIONAMENTO DIGIUNOSTOMIA, CHIUSURA ILEOSTOMIA, CHIUSURA COLONSTOMIA, RIPARAZIONE ERNIA IATALE',
+                        'APPENDICECTOMIA LAPAROTOMICA, COLECISTECTOMIA LAPAROTOMICA',
+                        'APPENDICECTOMIA LAPAROSCOPICA, COLECISTECTOMIA LAPAROSCOPICA',
+                        'FUNDOPLICATIO ROBOT ASSISTITA',
+                        'AMPUTAZIONE ADDOMINO - PERINEALE SEC MILES LAPAROTOMICA, ANASTOMOSI ILEO COLICA LAPAROTOMICA, ANASTOMOSI COLO COLICA LAPAROTOMICA, EMICOLECTOMIA DX LAPAROTOMICA, EMICOLECTOMIA SIN LAPAROTOMICA, RESEZIONE ANTERIORE DEL RETTO LAPAROTOMICA, RESEZIONE SEGMENTARIA MULTIPLA INTESTINALE LAPAROTOMICA, RESEZIONE DEL SIGMA LAPAROTOMICA, RESEZIONE TENUALE LAPAROTOMICA, RICANALIZZAZIONE COLO - RETTALE POST HARTAMANN SENZA RESEZIONE LAPAROTOMICA, RESEZIONE ILEALE LAPAROTOMICA, RESEZIONE COLON TRASVERSO LAPAROTOMICA, RESEZIONE DEL SIGMA RETTO LAPAROTOMICA, GASTRECTOMIA SUBTOTALE / TOTALE LAPAROTOMICA',
+                        'AMPUTAZIONE ADDOMINO - PERINEALE SEC MILES LPS, ANASTOMOSI ILEO COLICA LPS, ANASTOMOSI COLO COLICA LPS, EMICOLECTOMIA DX LPS, EMICOLECTOMIA SIN LPS, RESEZIONE ANTERIORE DEL RETTO, RESEZIONE SEGMENTARIA MULTIPLA INTESTINALE, RESEZIONE DEL SIGMA LPS, RESEZIONE TENUALE LPS, RICANALIZZAZIONE COLO - RETTALE POST HARTAMANN SENZA RESEZIONE LPS, RESEZIONE ILEALE LPS, RESEZIONE COLON TRASVERSO LPS, RESEZIONE DEL SIGMA RETTO LPS, GASTRECTOMIA SUBTOTALE / TOTALE LPS',
+                        'RESEZIONE ANTERIORE DEL RETTO ROBOT ASSISTITA, SPLENOPANCREASECTOMIA DISTALE ROBOT ASSISTITA, EMICOLECTOMIA DX ROBOT ASSISTITA, EMICOLECTOMIA SIN ROBOT ASSISTITA',
+                        'SPLENECTOMIA, SPLENOPANCREASECTOMIA DISTALE LAPAROTOMICA',
+                        'SPLENECTOMIA, SPLENOPANCREASECTOMIA DISTALE LAPAROSCOPICA',
+                        'SPLENOPANCREASECTOMIA DISTALE ROBOT ASSISTITA',
+                        'PERITONECTOMIA SELETTIVA CON O SENZA HIPEC, CITORIDUZIONE CON O SENZA HIPEC',
+                        'TATME (TRANSANAL TOTAL MESORECTAL EXCISION) LAPAROSCOPICO',
+                        'DUODENOCEFALOPANCREASECTOMIA',
+                        'DUODENOCEFALOPANCREASECTOMIA ROBOT ASSISTITA',
+                        'ESOFAGECTOMIA'
+                    ]
+                },
+                {
+                    key: 'Chirurgia Vascolare',
+                    questions: [
+                        'LEGATURA E STRIPPING DI VENE DELL’ARTO INFERIORE',
+                        'AMPUTAZIONE RAGGIO DEL PIEDE, AMPUTAZIONE SOTTO IL GINOCCHIO',
+                        'ENDOARTERIECTOMIA DELLA BIFORCAZIONE CAROTIDEA, ASPORTAZIONE DI PARAGANGLIOMA CAROTIDEO, ENDOARTERIECTOMIA DEL TRIPODE FEMORALE',
+                        'ANGIOPLASTICA ARTERIA FEMORALE, ANGIOPLASTICA ARTERIA ILIACA, ANGIOPLASTICA ARTERIA POPLITEA, ANGIOPLASTICA ARTERIA SUCCLAVIA, ANGIOPLASTICA CAROTIDEA CON INSERIZIONE DI STENT, ANGIOPLASTICA E STENT ARTERIA FEMORALE, ANGIOPLASTICA E STENT ARTERIA ILIACA, ANGIOPLASTICA E STENT ARTERIA POPLITEA, ANGIOPLASTICA E STENT IN VASO PERIFERICO, ANGIOPLASTICA VASI ADDOMINALI, ARTERIOGRAFIA, ESCLUSIONE ENDOVASCOLARE DELL’AORTA TORACICA, ESCLUSIONE ENDOVASCOLARE DELL’ARCO AORTICO, ESCLUSIONE ENDOVASCOLARE DI ANEURISMA DELL’AORTA ADDOMINALE SOTTORENALE, ESCLUSIONE ENDOVASCOLARE DI ANEURISMA DELL’AORTA ADDOMINALE SOPRARENALE',
+                        'BY PASS AORTO RENALE, INNESTO AORTO BISILIACO, BY PASS AORTO - ILIACO BIFEMORALE, INNESTO AORTO AORTICO SOPRARENALE CON PERFUSIONE IPOTERMICA ARTERIE RENALI, BY PASS FEMORO FEMORALE, BY PASS AXILLO BIFEMORALE, BYPASS AORTO - ILIACO MESENTERICO, BY PASS FEMORO POPLITEO SOTTOGENICOLARE IN SAFENA, RESEZIONE VASCOLARE ADDOMINALE ARTERIOSA, BY PASS CAROTIDEO SUCCLAVIO, BY PASS FEMORO POPLITEO SOTTOGENICOLARE IN PROTESI, BY PASS AORTO ILIACO BIFEMORALE, INNESTO AORTO BISILIACO',
+                        'INNESTO AORTO AORTICO TORACO - ADDOMINALE'
+                    ]
+                },
+                {
+                    key: 'Chirurgia Endocrino e Metabolica',
+                    questions: [
+                        'LOBOISTMECTOMIA TIROIDEA, TIROIDECTOMIA TOTALE, TIROIDECTOMIA TOTALE + LINFOADENECTOMIA DEL COMPARTIMENTO CENTRALE, PARATIROIDECTOMIAEMI, TIROIDECTOMIA TOTALE + LINFOADENECTOMIA LATERO CERVICALE',
+                        'TIROIDECTOMIA ROBOT ASSISTITA',
+                        'SLEEVE GASTRECTOMY LAPAROTOMICA, SADIS LAPAROTOMICA, BYPASS GASTRICO LAPAROTOMICO',
+                        'SLEEVE GASTRECTOMY LPS, SADIS LPS, BYPASS GASTRICO LPS, MINI - BYPASS GASTRICO LPS, REVISIONE DI DIVERSIONE BILIO - PANCREATICA LPS',
+                        'SLEEVE GASTRECTOMY ROBOT ASSISTITA, SADIS ROBOT ASSISTITA, BYPASS GASTRICO ROBOT ASSISTITA',
+                        'SURRENECTOMIA LAPAROTOMICA',
+                        'SURRENECTOMIA ROBOT ASSISTITA'
+                    ]
+                },
+                {
+                    key: 'Chirurgia EpatoBiliare',
+                    questions: [
+                        'FENESTRAZIONE DI CISTI EPATICA LPS',
+                        'RESEZIONI EPATICHE LIMITATE LPT, SEGMENTECTOMIA EPATICA / BISEGMENTECTOMIA EPATICA ANATOMICHE SETTORIALI LPT',
+                        'RESEZIONI EPATICHE LIMITATE LPS, SEGMENTECTOMIA EPATICA / BISEGMENTECTOMIA EPATICA ANATOMICHE SETTORIALI LPS',
+                        'RESEZIONI EPATICHE LIMITATE ROBOT ASSISTITA, SEGMENTECTOMIA EPATICA / BISEGMENTECTOMIA EPATICA ANATOMICHE SETTORIALI ROBOT ASSISTITA',
+                        'EPATETOMIA SINISTRA / DX LPT, MESOEPATECTOMIA LPT, TWO STAGE EPATECTOMY LPT, ALPPS LPT',
+                        'EPATETOMIA SINISTRA / DX LPS, MESOEPATECTOMIA LPS, TWO STAGE EPATECTOMY LPS, ALPPS LPS',
+                        'EPATETOMIA SINISTRA / DX ROBOT ASSISTITA, MESOEPATECTOMIA ROBOT ASSISTITA'
                     ]
                 },
                 {
                     key: 'Chirurgia Toracica',
                     questions: [
-                        'Biopsia del linfonodo sentinella, escissione nodulo mammario, quadrantectomia mammaria',
-                        'Mastectomia semplice/radicale, linfoadenectomia ascellare'
+                        'TORACOTOMIA ESPLORATIVA, BIOPSIE PLEURICHE, BIOPSIE LINFONODALI, PLASTICA DI ERNIA DIAFRAMMATICA, ASPORTAZIONE DI LESIONE DELLA PARETE TORACICA',
+                        'SIMPATICOFRASSI, TORACOSCOPIA ESPLORATIVA, BIOPSIE PLEURICHE TORACOSCOPICHE',
+                        'RESEZIONE POLMONARE ATIPICA TORACOTOMICA, LOBECTOMIA POLMONARE TORACOTOMICA, BILOBECTOMIA POLMONARE TORACOTOMICA, APICECTOMIA POLMONARE TORACOTOMICA, SEGMENTECTOMIA POLMONARE TORACOTOMICA, PNEUMECTOMIA TORACOTOMICA',
+                        'RESEZIONE POLMONARE ATIPICA TORACOSCOPICA, LOBECTOMIA POLMONARE TORACOSCOPICA, BILOBECTOMIA POLMONARE TORACOSCOPICA, APICECTOMIA POLMONARE TORACOSCOPICA, SEGMENTECTOMIA POLMONARE TORACOSCOPICA',
+                        'SEGMENTECTOMIA / LOBECTOMIA POLMONARE ROBOT ASSISTITA',
+                        'TIMECTOMIA STERNOTOMICA',
+                        'TIMECTOMIA ROBOT ASSISTITA'
                     ]
                 },
                 {
-                    key: 'Chirurgia Senologica',
+                    key: 'Chirurgia Trapianti',
                     questions: [
-                        'Biopsia del linfonodo sentinella, escissione nodulo mammario, quadrantectomia mammaria',
-                        'Mastectomia semplice/radicale, linfoadenectomia ascellare'
+                        'TX DI RENE DA VIVENTE / MORTE',
+                        'TX DI FEGATO'
+                    ]
+                },
+                {
+                    key: 'Chirurgia Urologia',
+                    questions: [
+                        'TURV, TURP',
+                        'URETEROSCOPIA (RIRS, ULT, PCNL)',
+                        'ASPORTAZIONE IDROCELE, ASPORTAZIONE O DEMOLIZIONE DI LESIONE DEL PENE, BIOPSIA PENE, BIOPSIA PROSTATICA, CATETERIZZAZIONE URETERALE, CIRCONCISIONE, CORPOROPLASTICA PENIENA, INCISIONE E DRENAGGIO SCROTO E TUNICA VAGINALE, BIOPSIA TRANSPERINEALE DELLA PROSTATA, ORCHIECTOMIA MONOLATERALE / BILATERALE',
+                        'PIELOPLASTICA, REIMPIANTO URETERE ACQUISITO, RESEZIONE TRANSURETRALE LESIONE VESCICALE O NEOPLASIA, SOSPENSIONE URETRALE SOVRAPUBICA CON SLING',
+                        'CISTECTOMIA LAPAROTOMICA',
+                        'NEFRECTOMIA PARZIALE / RADICALE LAPAROTOMICA, ENUCLEORESEZIONE RENALE LAPAROTOMICA',
+                        'NEFRECTOMIA PARZIALE / RADICALE LPS, ENUCLEORESEZIONE RENALE LPS, NEFROURETERECTOMIA LPS',
+                        'NEFRECTOMIA PARZIALE / RADICALE ROBOT ASSISTITA, ENUCLEORESEZIONE RENALE ROBOT ASSISTITA, NEFROURETERECTOMIA ROBOT ASSISTITA',
+                        'PROSTATECTOMIA LAPAROTOMICA',
+                        'PROSTATECTOMIA ROBOT ASSISTITA'
                     ]
                 },
                 {
                     key: 'Chirurgia Pediatrica',
                     questions: [
-                        'Biopsia del linfonodo sentinella, escissione nodulo mammario, quadrantectomia mammaria',
-                        'Mastectomia semplice/radicale, linfoadenectomia ascellare'
+                        'CHIUSURA DI COLOSTOMIA CON RESEZIONE E ANASTOMOSI, CHIUSURA DI ILEOSTOMIA CON RESEZIONE E ANASTOMOSI',
+                        'LPS ESPLORATIVA, APPENDICECTOMIA LAPAROSCOPICA',
+                        'PLASTICA DI ERNIA INGUINALE, CHIUSURA DEL DOTTO PERITONEO - VAGINALE, CIRCONCISIONE, ASPORTAZIONE DI IDROCELE, ASPORTAZIONE DI VARICOCELE, ORCHIOPESSI MONOLATERALE / BILATERALE, RIPARAZIONE DI IPOSPADIA, BIOPSIA DI LINFONODI',
+                        'CISTOSCOPIA, PIELOPLASTICA, CHIUSURA DI FISTOLA URETRALE',
+                        'ESOFAGO - ESOFAGOSTOMIA INTRATORACICA'
                     ]
                 }
             ],
+
+
             "Chirurgie Specialistiche": [
                 {
                     key: 'Ch. Senologica', questions: [
@@ -240,73 +342,74 @@
                     key: 'Ortopedia e Traumatologia',
                     questions: [
                         'CHIRURGIA OMERO frattura, pseudoartrosi, neoformazione, infezioni osteo-articolari: sintesi percutanea con fissatore esterno, sintesi con placca e viti/chiodo endomidollare, osteotomia, rimozione mezzi di sintesi, biopsia percutanea/open e asportazione neoformazioni muscolo-scheletriche, innesti ossei, amputazione, impianto spaziatore',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
+                        'CHIRURGIA RADIO/ULNA (frattura, pseudoartrosi, neoformazione, lussazione): sintesi percutanea con fissatore esterno, sintesi con placca e viti/chiodo endomidollare, osteotomia, rimozione mezzi di sintesi, biopsia percutanea/open e asportazione neoformazioni muscolo-scheletriche, innesti ossei, amputazione, riduzione incruenta',
+                        'CHIRURGIA GOMITO (frattura, lussazione): artrolisi artroscopica, sintesi, protesi totale',
+                        'CHIRURGIA MANO/PIEDE (frattura, neoformazione, lussazione): amputazione, correzione dita, rimozione mezzi di sintesi, biopsia e asportazione neoformazione, revisione, sintesi con placche e viti/fili di k, osteotomia, rimozione corpi estranei, innesti ossei, neurolisi e tenolisi.',
+                        'CHIRURGIA SPALLA Endoprotesi e artroprotesi totale, artroscopia per sinovialectomia -artrolisi-lesione cuffie rotatori',
+                        'CHIRURGIA SCAPOLA/CLAVICOLA sintesi con placca e viti, biopsia, rimozione mezzi di sintesi, osteotomia',
+                        'CHIRURGIA COSTE/STERNO biopsia open/percutanea',
+                        'CHIRURGIA BACINO sintesi percutanea e/o con fissatore esterno, sintesi con placche e viti, biopsia open/percutanea, rimozione mezzi di sintesi',
+                        'CHIRURGIA ANCA (frattura, coxartrosi, lussazione, neoformazione): endoprotesi, artroprotesi totale, innesti ossei, revisione, impianto e rimozione spaziatore',
+                        'CHIRURGIA FEMORE (frattura, neoformazione, infezione): sintesi con placca e viti/ chiodo endomidollare, sintesi percutanea con fissatore esterno, rimozione mezzi di sintesi, innesti ossei, impianto e rimozione spaziatore, allungamento',
+                        'CHIRURGIA GINOCCHIO riduzione incruenta, protesi totale/gonartrosi primaria e secondaria, artroscopia per artrolisi-sinovialectomia-sutura meniscale-meniscectomia, rimozione e impianto spaziatore, revisione, amputazione, ricostruzione legamento crociato anteriore, artroscopia/open del legamento collaterale del ginocchio e crociato anteriore.',
+                        'CHIRURGIA TIBIA/PERONE (frattura, pseudoartrosi, neoformazioni, infezioni osteo-articolari) allungamento con innesto osseo/fissatore esterno, sintesi con placca e viti/chiodo endomidollare, sintesi percutanea con fissatore esterno, biopsia percutanea/open, osteotomia, rimozione mezzi di sintesi, innesti ossei, toilette chirurgica, impianto e rimozione spaziatore',
+                        'CHIRURGIA TESSUTI MOLLI/TENDINI E ARTICOLAZIONI fasciotomia per sdr compartimentale, riparazione e innesti tendinei e della cartilagine articolare, tenorrafia, decompressione, toilette ferita chirurgica',
                     ]
                 },
                 {
                     key: 'Chirurgia Vertebrale',
                     questions: [
                         'CHIRURGIA VERTEBRALE BASE biopsia percutanea/open, cifoplastica vertebroplastica, microdiscectomia',
-                        '..............',
-                        '..............'
+                        'CHIRURGIA VERTEBRALE MEDIA decompressione del canale vertebrale/radicolare, rimozione di mezzi di sintesi, trazione cervicale con applicazione di Halo',
+                        'CHIRURGIA VERTEBRALE ELEVATA artrodesi: cervicale anteriore/posteriore, dorsale e dorso-lombare con/senza cage open/percutaneo, lombare anterolaterale (XLIF) e posteriore open/percutaneo, lombare anteriore (ALIF) e posteriore percutanea/open',
                     ]
                 },
                 {
                     key: 'Neurochirurgia',
                     questions: [
                         'CHIRURGIA DELL/IDROCEFALO: derivazioni lombo-peritoneali, ventricolo-atriali, ventricolo-peritoneali, derivazione ventricolare esterna',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............'
+                        'REVISIONE E RIMOZIONE SISTEMA DI DERIVAZIONE LIQUORALE: VENTRICOLO-PERITONEALE, SPINO-PERITONEALE.',
+                        'CHIRURGIA ENDOSCOPICA CEREBRALE: TERZOVENTRICOLOSTOMIA ENDOSCOPICA, VENTRICOLOSTOMIA ENDOSCOPICA.',
+                        'CHIRURGIA TRAUMATOLOGICA: EVACUAZIONE MONOLATERALE E BILATERALE DI EMATOMA SOTTODURALE, EMATOMA SUBDURALE, CRANIOTOMIA CON EVACUAZIONE DI EMATOMA SOTTODURALE.',
+                        'INTERVENTI CHIRURGICI SU LESIONI DELLA BASE CRANICA: ASPORTAZIONE LESIONE SELLARE PER VIA ENDOSCOPICA, RIPARAZIONE FISTOLA LIQUORALE PER VIA TRASFENOIDALE ENDOSCOPICA',
+                        'CHIRURGIA DEI NERVI PERIFERICI: NEUROLISI TUNNEL CARPALE, NEUROLISI TUNNEL CUBITALE.',
+                        'NEUROCHIRURGIA FUNZIONALE: DEEP BRAIN STIMULATION (DBS)',
+                        'NEUROCHIRURGIA FUNZIONALE: IMPIANTO/REVISIONE/SOSTITUZIONE ELETTRODO E GENERATORE PER STIMOLAZIONE NERVO VAGO.',
+                        'NEUROCHIRURGIA FUNZIONALE: IMPIANTO/REVISIONE/SOSTITUZIONE ELETTRODO E GENERATORE PER STIMOLAZIONE MIDOLLARE (SCS).',
+                        'NEUROCHIRURGIA FUNZIONALE: IMPIANTO DI SISTEMA DI INFUSIONE INTRATECALE.',
+                        'INTERVENTI CHIRURGICI SULLA COLONNA VERTEBRALE: ERNIE DISCALI LOMBARI-CERVICALI, STENOSI DELLA COLONNA CERVICALE-LOMBARE, STABILIZZAZIONI.',
+                        'INTERVENTI CHIRURGICI CRANICI MAGGIORI: TUMORALI, VASCOLARI, TRAUMATICI, MALFORMATIVI.',
+                        'CHIRURGIA VASCOLARE CEREBRALE: CLIPPING DI ANEURISMA CEREBRALE, MALFORMAZIONI ARTERO-VENOSE (MAV)',
+                        'CHIRURGIA DELLA RIVASCOLARIZZAZIONE CEREBRALE: BYPASS CEREBRALE EXTRACRANICO-INTRACRANICO',
+                        'CRANIOPLASTICA: CUSTOM MADE, OSSO AUTOLOGO',
+                        'INTERVENTI CHIRURGICI PER NEVRALGIA TRIGEMINALE: COMPRESSIONE PERCUTANEA CON PALLONCINO DEL GANGLIO DEL GASSER, DECOMPRESSIONE TRIGEMINALE CON CRANIOTOMIA',
+                        'INTERVENTO CHIRURGICO PER CORREZIONE MALFORMAZIONE DI CHIARI OSSO E OSSO-TONSILLE CEREBELLARI (NEUROCHIRURGIA INFANTILE)',
+                        'CRANIOPLASTICA ESPANSIVA-RICOSTRUTTIVA: BIPARIETALE, OCCIPITALE, FRONTO-ORBITARIA (NEUROCHIRURGIA INFANTILE)'
                     ]
                 },
                 {
                     key: 'Otorinolaringoiatria',
                     questions: [
                         'CAVO ORALE: adenotonsillectomia, aportazione neoformazione labbro, guancia, lingua e faringea. Uvulofaringopalatoplastica, asportazione corpo estraneo faringeo e laringeo, incisione ascesso tonsillare, marsupializzazione del dotto salivare e dell/ascesso parotideo. Scialoendoscopia, frenuloplastic linguale, riparazione fistola oroantrale e oronasale, asportazione neoformazione del palato duro ,asporazione di ranula sotto liguale e gengivale. MicroLaringoscopia ',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............'
+                        'NASO: RIMOZIONE CORPO ESTRANEO NARICE, RINOFARINGEO E DEL SENO MASCELLARE. SETTOPLASTICA, RINOSETTOPLASTICA, RIMOZIONE DI POLIPI ANTROCOANALE, TURBINECTOMIA E TURBINOTOMIA, EMOSTASI VARISI NASALI, EXENTERATIO ORBITARIE, CHIRURGIA DEI SENI PARANASALI E DELL’ORBITA PER VIA ENDOSCOPICA, FRATTURA OSSA NASALI, ATRESIA COANALE, DACRIOCISTORINOSTOMIA.',
+                        'ORECCHIO: CHIUSURA FISTOLA OTO-LIQUORALE, MASTOIDECTOMIA, EXERESI COLESTEATOMA DELLA ROCCA, ATRESIA AURIS, LABIRINTECTOMIA, MEATOPLASTICA, MIRINGOPLASTICA, MIRINGOTOMIA, OSSICULOPLASTICA, TIMPANOPLASTICA DI TIPO I II III IV, RIMOZIONE CORPO ESTRANEO, STENOSI DEL CONDOTTO URICOLARE, TIMPANOPLASTICA, ASPORTAZIONE NEOFORMAZIONEE PADIGLIONE AURICOLARE.',
+                        'ORECCHIO AVANZATO: TIMPAMOPLASTICA DI TIPO V, PETROSECTOMIA, ASPORTAZIONE DI NEURINOMA DELL’ACUSTICO E ANGOLO PONTECEREBELLARE, IMPIANTO COCLEARE.',
+                        'COLLO: SVUOTAMENTO LATERO CERVICALE, ASPORATAZIONE DI NEOFORMZIONE ESTERNA DELLA CUTE, CERVICOTOMIA, PAROTIDECTOMIA, SCIALECTOMIA, INCISIONE E DRENAGGIO DI ASCESSO-FLEMMONE LATEROCERVICALE, LARINGECTOMIA PARZIALE E TOTALE, RICOSTRUZIONE DEL NERVO FACCIALE, TRACHEOTOMIA.',
+                        'GLOMO: CAROTIDEO, TIMPANICO - TIMPANICOGIUGULARE, LINFANGIOMA DEL COLLO, PARAGANGLIOMA CAROTIDEO. CONTROLLO EMOSTASI TONSILLARE.',
+                        'LEMBO: ASPORTAZIONE DEL LABBRO, DELLA GUANCIA, GLOSSECTOMIA CON RICOSTRUZIONE LEMBO LIBERO PEDUNCOLATO, PETTORALE E DEL MASSICCIO FACCIALE. MANDIBULECTOMIA CON RICOSTRUZIONE OSSO AUTOLOGO.',
+                        'LEMBO CON TECNICA DI LABBE’.',
+                        'OTOSCLEROSI, CORDECTOMIA E EMILARINGECTOMIA SOVRAGLOTTICA CON LASER AD ANIDRIDE CARBONICA.'
                     ]
                 },
                 {
                     key: 'Maxillo-Facciale',
                     questions: [
                         'CAVO ORALE:asportazione neoformazione lingua, palato duro, osteolitica mascellare, guancia e labbra. Fistola oro-nasoantrale',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............',
-                        '..............'
+                        'MASCELLA: FRATTURA LE FORT I II III, MASCELLARE CON MEZZI DI SINTESI E CONDILO MANDIBOLARE. GENIOPLASTICA. CORREZIONE PROGENISMO.',
+                        'NASO: RINOSETTOPLASTOCA. RIDUZIONE FRATTURA OSSA NASALI. ANTROSTOMIA MASCELLARE.',
+                        'ORBITA: EXENTERATIO ORBITALE. RIDUZIONE FRATTURA ORBITARIA TRAUMATICA E ATRAUMATICA.',
+                        'COLLO: PAROTIDECTOMIA. CERVICOTOMIA. SVUOTAMENTO LATERO-CERVICALE. TRACHEOTOMIA.',
+                        'LEMBO: RESEZIONE MANDIBOLARE E GLOSSECTOMIA CON RICOSTRUZIONE LEMBO LIBERO E PEDUNCOLATO CON OSSO AUTOLOGO.'
                     ]
                 }
 
@@ -315,40 +418,66 @@
                 {
                     key: 'Cataratta',
                     questions: [
-                        'Gestione strumentale e assistenza in chirurgia della cataratta',
-                        'Assistenza in chirurgia palpebrale e del segmento anteriore',
-                        'Gestione delle procedure in anestesia locale'
-                    ]
-                },
-                {
-                    key: 'Procedure Minori',
-                    questions: [
-                        'Piccoli interventi in anestesia locale (es. asportazione di neoformazioni cutanee)',
-                        'Gestione del paziente in dimissione rapida'
+                        '13.72 - IMPIANTO SECONDARIO DI CRISTALLINO ARTIFICIALE',
+                        '13.41_2 - INTERVENTO DI CATARATTA CON O SENZA IMPIANTO DI LENTE INTRAOCULARE - OCCHIO DX',
+                        '13.72_3 - IMPIANTO SECONDARIO DI CRISTALLINO ARTIFICIALE - OCCHIO SX',
+                        '13.2 - ESTRAZIONE EXTRACAPSULARE DELLA CATARATTA CON TECNICA DI ESTRAZIONE LINEARE',
+                        '13.72 - IMPIANTO SECONDARIO DI CRISTALLINO ARTIFICIALE'
                     ]
                 },
                 {
                     key: 'Vitreo retina',
                     questions: [
-                        'Gestione degli strumenti per vitrectomia (es. microscopio, vitrectore, gas/olio)',
-                        'Assistenza in procedure complesse (es. distacco di retina, membrane epiretiniche)',
-                        'Gestione del monitoraggio intraoperatorio per interventi di retina'
+                        '14.72 - ALTRA RIMOZIONE DEL CORPO VITREO',
+                        '14.41 - PIOMBAGGIO SCLERALE CON IMPIANTO',
+                        '14.74 - ALTRA VITRECTOMIA MECCANICA',
+                        '14.75 - INIEZIONE DI SOSTITUTI VITREALI'
                     ]
                 },
                 {
                     key: 'Glaucoma',
                     questions: [
-                        'Preparazione e assistenza per interventi di filtraggio (es. trabeculectomia)',
-                        'Assistenza per l’impianto di dispositivi di drenaggio (es. shunt valvolari)',
-                        'Gestione delle complicanze post-operatorie immediate (es. ipotonia, ipertonia)'
+                        '12.69 - ALTRI INTERVENTI DI FISTOLIZZAZIONE DELLA SCLERA',
+                        '12.89 - ALTRI INTERVENTI SULLA SCLERA',
+                        '12.64 - TRABECULECTOMIA AB EXTERNO',
+                        '12.83 - REVISIONE DI FERITA OPERATORIA DEL SEGMENTO ANTERIORE DELL/OCCHIO NON CLASSIFICATA ALTROVE'
+
+                    ]
+                },
+                {
+                    key: 'Palpebra',
+                    questions: [
+                        '08.24 - ASPORTAZIONE DI LESIONE ESTESA DELLA PALPEBRA, A TUTTO SPESSORE',
+                        '08.23 - ASPORTAZIONE DI LESIONE ESTESA DELLA PALPEBRA NON A TUTTO SPESSORE',
+                        '08.33 - CORREZIONE DI BLEFAROPTOSI CON RESEZIONE O AVANZAMENTO DEL MUSCOLO ELEVATORE O SUA APONEUROSI'
+
                     ]
                 },
                 {
                     key: 'Cornea',
                     questions: [
-                        'Assistenza strumentale per trapianti di cornea (es. PKP, DMEK/DSAEK)',
-                        'Gestione di procedure laser di superficie (es. PRK, PTK)',
-                        'Cura e gestione del paziente con medicazioni complesse o lenti a contatto terapeutiche'
+                        '11.60 - TRAPIANTO DI CORNEA, NON ALTRIMENTI SPECIFICATO',
+                        '11.64 - ALTRA CHERATOPLASTICA PERFORANTE OMOLOGA',
+                        '11.69 - ALTRO TRAPIANTO DELLA CORNEA',
+                        '11.39 - ALTRA ASPORTAZIONE DELLO PTERIGIUM'
+
+                    ]
+                },
+                {
+                    key: 'Orbita e Congiuntiva',
+                    questions: [
+                        '16.42 - ENUCLEAZIONE DEL BULBO OCULARE CON ALTRO IMPIANTO CONTEMPORANEO',
+                        '15.3 - INTERVENTI SU DUE O PIÙ MUSCOLI EXTRAOCULARI CHE RICHIEDONO DISTACCO TEMPORANEO DAL BULBO, UNO O ENTRAMBI GLI OCCHI',
+                        '15.11 - ARRETRAMENTO DI UN MUSCOLO EXTRAOCULARE',
+                        '10.21_2 - BIOPSIA DELLA CONGIUNTIVA - OCCHIO DX',
+                        '10.32 - DEMOLIZIONE DI LESIONE DELLA CONGIUNTIVA',
+                        '15.3 - INTERVENTI SU DUE O PIÙ MUSCOLI EXTRAOCULARI CHE RICHIEDONO DISTACCO TEMPORANEO DAL BULBO, UNO O ENTRAMBI GLI OCCHI',
+                        '16.22 - ASPIRAZIONE DIAGNOSTICA DELL/ORBITA',
+                        '12.89 - ALTRI INTERVENTI SULLA SCLERA',
+                        '10.32 - DEMOLIZIONE DI LESIONE DELLA CONGIUNTIVA',
+                        '10.21_3 - BIOPSIA DELLA CONGIUNTIVA - OCCHIO SX',
+                        '12.89 - ALTRI INTERVENTI SULLA SCLERA'
+
                     ]
                 }
             ]
@@ -459,15 +588,15 @@
                 const header = document.createElement('div');
                 header.className = 'flex items-center justify-between cursor-pointer';
                 header.innerHTML = `
-                    <h4 class='font-semibold'>${sec.title}</h4>
-                    <label class="flex items-center cursor-pointer">
-                        <div class="relative">
-                            <input type="checkbox" id="${uniqueId}_toggle" class="sr-only competence-toggle">
-                            <div class="block bg-gray-600 w-10 h-6 rounded-full"></div>
-                            <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition"></div>
-                        </div>
-                    </label>
-                `;
+                                <h4 class='font-semibold'>${sec.title}</h4>
+                                <label class="flex items-center cursor-pointer">
+                                    <div class="relative">
+                                        <input type="checkbox" id="${uniqueId}_toggle" class="sr-only competence-toggle">
+                                        <div class="block bg-gray-600 w-10 h-6 rounded-full"></div>
+                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition"></div>
+                                    </div>
+                                </label>
+                            `;
 
                 // Contenitore delle domande (inizialmente nascosto e disattivato)
                 const list = document.createElement('div');
@@ -489,9 +618,9 @@
                         const label = document.createElement('label');
                         label.className = 'flex items-center gap-1 cursor-pointer';
                         label.innerHTML = `
-                                    <input type='radio' id='${radioId}' name='${radioName}' data-section='${sIdx}' data-item='${iIdx}' data-value='${val}' class='competenza-radio' disabled>
-                                    <span>${val}</span>
-                                `;
+                                                <input type='radio' id='${radioId}' name='${radioName}' data-section='${sIdx}' data-item='${iIdx}' data-value='${val}' class='competenza-radio' disabled>
+                                                <span>${val}</span>
+                                            `;
                         radioGroup.appendChild(label);
                     });
 
@@ -533,10 +662,10 @@
             const n = data[currentReparto].infermieri.find(x => x.id === selectedNurseId);
             if (!n) return;
             nurseCard.innerHTML = `
-                            <div class='font-medium text-lg'>${n.nome} ${n.cognome}</div>
-                            <div class='text-sm text-gray-600'>${n.ruolo || '-'} | Matricola: ${n.matricola || '-'}</div>
-                            <div class='text-sm mt-2'>Esperienza: ${n.esperienza || '-'} anni</div>
-                            <div class='text-sm mt-2 text-gray-500'>Ultima valutazione: ${n.ultimaValutazione && n.ultimaValutazione.reparto === currentReparto ? n.ultimaValutazione.data : 'Mai (o in altro reparto)'}</div>`;
+                                        <div class='font-medium text-lg'>${n.nome} ${n.cognome}</div>
+                                        <div class='text-sm text-gray-600'>${n.ruolo || '-'} | Matricola: ${n.matricola || '-'}</div>
+                                        <div class='text-sm mt-2'>Esperienza: ${n.esperienza || '-'} anni</div>
+                                        <div class='text-sm mt-2 text-gray-500'>Ultima valutazione: ${n.ultimaValutazione && n.ultimaValutazione.reparto === currentReparto ? n.ultimaValutazione.data : 'Mai (o in altro reparto)'}</div>`;
             document.getElementById('btnEditNurse').classList.remove('hidden'); document.getElementById('btnDeleteNurse').classList.remove('hidden');
         }
 
@@ -723,7 +852,27 @@
             const nurse = data[currentReparto].infermieri.find(x => x.id === selectedNurseId); const blob = new Blob([JSON.stringify({ nurse, reparto: currentReparto }, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${nurse.nome}_${nurse.cognome}_valutazione.json`; a.click(); URL.revokeObjectURL(url);
         });
 
-        document.getElementById('btnClearAll').addEventListener('click', () => { if (!confirm('Svuotare tutti i dati locali?')) return; localStorage.removeItem(STORAGE_KEY); location.reload(); });
+        document.getElementById('btnClearAll').addEventListener('click', () => {
+            if (!confirm('Svuotare solo le valutazioni (gli infermieri resteranno)?')) return;
+
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return;
+            const allData = JSON.parse(raw);
+
+            // Cancella solo le valutazioni e lascia gli infermieri intatti
+            for (const reparto in allData) {
+                if (allData[reparto] && Array.isArray(allData[reparto].infermieri)) {
+                    allData[reparto].infermieri.forEach(n => {
+                        n.valutazioni = [];
+                        n.ultimaValutazione = null;
+                    });
+                }
+            }
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+            alert('Valutazioni cancellate. Elenco infermieri conservato.');
+            location.reload();
+        });
 
         // Calcolo punteggi per sezione (già ottimizzata)
         // Funzione per calcolare i punteggi per sezione e item
@@ -790,47 +939,126 @@
         // Aggiornamento UI punteggi e livelli (già ottimizzata)
         // Funzione per aggiornare il riepilogo
         function updateScores() {
-            const { scores, sectionDetails, itemDetails } = computeSectionScores();
+            // La funzione computeSectionScores() è fondamentale: ci fornisce i dati grezzi.
+            // L'array 'sectionDetails' è usato per il grafico e i totali.
+            const { scores, sectionDetails, itemDetails, sections: sectionAggregates, selections: selectionDetails } = computeSectionScores();
+
+            // Calcolo del punteggio totale (media delle medie per sezione)
             const total = scores.reduce((a, b) => a + b, 0);
+            const overallAverage = scores.length > 0 ? total / scores.length : 0;
+
             const totalMaxScore = getCurrentMaxScore();
 
-            summaryScore.textContent = `Punteggio totale: ${total} (Max: ${totalMaxScore})`;
+            // Aggiornamento UI
+            summaryScore.textContent = `Punteggio totale: ${overallAverage.toFixed(2)} (Max teorico: ${totalMaxScore})`;
 
-            // Costruisce il riepilogo dettagliato per ogni item
+            // Costruisce il riepilogo dettagliato per ogni item attivo
             let summaryHtml = '';
 
-            itemDetails.forEach(section => {
-                // Mostra il titolo del gruppo/competenza
+            itemDetails.forEach((section, sIdx) => {
+                const toggleId = `sec_${currentReparto.replace(/\s/g, '_')}_${sIdx}_toggle`;
+                const isSectionActive = document.getElementById(toggleId)?.checked || false;
+
+                // Mostra solo le competenze attive e con almeno una risposta
+                const answeredItems = section.questions.filter(item => item.score > 0);
+                if (!isSectionActive || answeredItems.length === 0) return;
+
                 summaryHtml += `<h4 class='font-semibold mt-4 mb-1 text-blue-700 dark:text-blue-300'>${section.key}</h4>`;
 
-                // Dettaglio per singola domanda
-                section.questions.forEach(item => {
-                    const isAnswered = item.score > 0;
-                    const color = isAnswered ? (item.score >= 3 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400') : 'text-gray-500 dark:text-gray-400';
+                answeredItems.forEach(item => {
+                    const color = item.score >= 3
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-blue-600 dark:text-blue-400';
 
-                    summaryHtml += `<div class="flex flex-col space-y-0">
-                                    <span class="text-xs text-gray-700 dark:text-gray-300">${item.question}</span>
-                                    <span class="${color} text-sm font-semibold ml-2">${item.level}</span>
-                                </div>`;
+                    summaryHtml += `
+                <div class="flex flex-col space-y-0">
+                    <span class="text-xs text-gray-700 dark:text-gray-300">${item.question}</span>
+                    <span class="${color} text-sm font-semibold ml-2">${item.level}</span>
+                </div>`;
                 });
             });
 
-            // Aggiorna l'elemento summaryLevel con la nuova struttura
-            summaryLevel.innerHTML = `<h4 class='font-semibold mb-2'>Livelli di Riferimento Dettagliati:</h4><div class='space-y-3 text-sm'>${summaryHtml}</div>`;
+            // ====================================================================
+            // 🛑 ASSEGNAZIONE DELLE VARIABILI GLOBALI (NUOVO FIX PER INPUT)
+            // ====================================================================
 
-            // Aggiorna il grafico radar (rimane invariato, usa la media del gruppo)
+            // 1. Rileva i dati dell'Infermiere dagli INPUT
+            const inputMatricola = document.getElementById('inputMatricola');
+            const inputNome = document.getElementById('inputNome');
+            const inputCognome = document.getElementById('inputCognome');
+            const inputValutatore = document.getElementById('inputValutatore'); // Già usato per il valutatore
+
+            const matricolaValue = inputMatricola?.value || '';
+            const nomeValue = inputNome?.value || '';
+            const cognomeValue = inputCognome?.value || '';
+            const valutatoreValue = inputValutatore?.value || '-';
+
+            let nurseData = null;
+
+            // La validazione ora si basa sulla presenza della Matricola (l'ID univoco)
+            if (matricolaValue.trim() !== '') {
+                // Se la matricola è presente, creiamo l'oggetto nurseData
+                nurseData = {
+                    id: matricolaValue, // La Matricola è l'ID
+                    nome: nomeValue || "N/D",
+                    cognome: cognomeValue || "N/D",
+                    matricola: matricolaValue,
+                    valutatore: valutatoreValue
+                };
+            }
+
+            // 🛑 DEBUG: Controlla ora cosa è stato letto dagli input
+            console.log("DEBUG INFERMIERE: Dati letti dagli input. Matricola:", matricolaValue, "Infermiere letto:", !!nurseData);
+
+            // 2. Assegna i dati alle variabili globali (window.*) che il salvataggio legge
+            window.currentNurse = nurseData;
+            window.totalScore = overallAverage; // Assegna il punteggio
+            window.sections = sectionDetails;
+
+            // Costruisce l'array 'selections' richiesto dal report.html
+            window.selections = itemDetails.flatMap(section =>
+                section.questions.filter(item => item.score > 0).map(item => ({
+                    value: item.score,
+                    sectionIndex: section.sectionIndex,
+                    itemIndex: item.itemIndex
+                }))
+            );
+
+            console.log("✅ Dati globali aggiornati. Punteggio:", window.totalScore.toFixed(2));
+
+            // ====================================================================
+            // 🎨 AGGIORNAMENTO UI (SPOSTATO ALL'INTERNO DELLA FUNZIONE)
+            // ====================================================================
+
+            summaryLevel.innerHTML =
+                summaryHtml.trim() === ''
+                    ? `<p class='text-sm text-gray-500 italic'>Nessuna competenza valutata.</p>`
+                    : `<h4 class='font-semibold mb-2'>Livelli di Riferimento Dettagliati:</h4><div class='space-y-3 text-sm'>${summaryHtml}</div>`;
+
+            // Aggiorna il grafico radar
             const labels = getCurrentCompetences().map(s => s.key);
 
             if (radarChart) radarChart.destroy();
 
-            // Per il radar, usiamo la media del punteggio per avere un grafico normalizzato (Max 4)
             const dataForRadar = sectionDetails.map(d => d.average);
             const maxRadar = 4;
 
             radarChart = new Chart(radarCtx, {
                 type: 'radar',
-                data: { labels: labels, datasets: [{ label: 'Livello Medio', data: dataForRadar, backgroundColor: 'rgba(59,130,246,0.18)', borderColor: '#3b82f6', borderWidth: 1 }] },
-                options: { responsive: true, scales: { r: { beginAtZero: true, max: maxRadar } } }
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Livello Medio',
+                        data: dataForRadar,
+                        backgroundColor: 'rgba(59,130,246,0.18)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { r: { beginAtZero: true, max: maxRadar } }
+                }
             });
         }
 
@@ -936,5 +1164,221 @@
         document.getElementById('btnImport').addEventListener('click', () => {
             window.open('survey_vbhc_infermieri_sala_operatoria_html.html', '_blank');
         });</script>
+
+    <script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
+
+        // 🛑 ASSICURATI DI INSERIRE QUI I TUOI DATI DI CONFIGURAZIONE FIREBASE REALI
+        const firebaseConfig = {
+            apiKey: "AIzaSyDuDjV6nU5YuNfkivTKJ1kf6NwmkGRIi34",
+            authDomain: "clinicalcompetenceor.firebaseapp.com",
+            projectId: "clinicalcompetenceor",
+            storageBucket: "clinicalcompetenceor.firebasestorage.app",
+            messagingSenderId: "91172915109",
+            appId: "1:91172915109:web:f548cb1f92fb5ae08f8a4c",
+            measurementId: "G-V547BJD3VC"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+
+        // =========================================================================
+        // 🛑 FUNZIONE FONDAMENTALE DI CALCOLO E ASSEGNAZIONE DATI (FINAL FIX)
+        // =========================================================================
+
+        function aggiornaDatiECalcolaPunteggio() {
+            // Questa funzione deve essere chiamata dal codice applicativo ogni volta che un dato viene modificato.
+
+            let totalScore = 0;
+            let totalCount = 0;
+            const datiDelleSezioni = [];
+            const datiDelleSelezioni = []; // Nuovo array per i dettagli richiesti dal report.html
+
+            // -------------------------------------------------------------------------
+            // 1. RACCOLTA DATI DAI CAMPI HTML/GLOBALI (CONTROLLA GLI ID)
+            // -------------------------------------------------------------------------
+
+            // Legge il Valutatore
+            const valutatore = document.getElementById('inputValutatore')?.value || '-';
+
+            // 🚨 Placeholder per l'Infermiere: Se il tuo infermiere viene selezionato da un <select> con ID 'selectInfermiere'
+            const infermiereSelect = document.getElementById('selectInfermiere');
+            let infermiereDati = null;
+
+            if (infermiereSelect?.value && infermiereSelect.value !== 'null' && infermiereSelect.value !== '') {
+                // Assumiamo che il 'value' contenga un ID/matricola e il 'text' il nome
+                const selectedOption = infermiereSelect.options[infermiereSelect.selectedIndex];
+
+                // 🚨 ADATTARE QUESTA LOGICA: Se i dati del tuo infermiere sono più complessi (es. nome, cognome, matricola)
+                // devi leggere quei dati da dove li hai memorizzati (es. un oggetto globale, un data-attribute, o un JSON)
+                infermiereDati = {
+                    id: infermiereSelect.value,
+                    nome: selectedOption?.text.split(' ')[0] || "N/D", // Placeholder
+                    cognome: selectedOption?.text.split(' ').slice(1).join(' ') || "N/D", // Placeholder
+                    matricola: infermiereSelect.value, // Usiamo l'ID come matricola per semplicità
+                    valutatore: valutatore
+                };
+            }
+
+            // -------------------------------------------------------------------------
+            // 2. LOGICA DI CALCOLO: Aggregazione Punteggi e Dettagli
+            // -------------------------------------------------------------------------
+
+            const toggles = document.querySelectorAll('.competence-toggle:checked');
+            const sezioniMappa = new Map();
+
+            toggles.forEach(toggle => {
+                // Legge il punteggio (value)
+                const score = parseFloat(toggle.value) || parseFloat(toggle.dataset.score) || 1;
+
+                // Legge i metadati necessari per il report
+                const sectionName = toggle.dataset.section || 'Generica';
+                const sectionIndex = parseInt(toggle.dataset.sectionIndex);
+                const itemIndex = parseInt(toggle.dataset.itemIndex);
+
+                totalScore += score;
+                totalCount++;
+
+                // 2a. Crea l'array 'selections' (dettagli di ogni singola risposta)
+                datiDelleSelezioni.push({
+                    value: score,
+                    sectionIndex: sectionIndex,
+                    itemIndex: itemIndex
+                });
+
+                // 2b. Aggrega i dati per sezione (per l'array 'sections')
+                if (!sezioniMappa.has(sectionName)) {
+                    sezioniMappa.set(sectionName, { total: 0, count: 0, answeredCount: 0, sectionIndex: sectionIndex });
+                }
+                sezioniMappa.get(sectionName).total += score;
+                sezioniMappa.get(sectionName).count++;
+                sezioniMappa.get(sectionName).answeredCount++; // Conta le risposte
+            });
+
+            // 3. Calcola media finale e popola l'array di sezioni
+            const punteggioFinale = totalCount > 0 ? totalScore / totalCount : 0;
+
+            sezioniMappa.forEach(data => {
+                datiDelleSezioni.push({
+                    nome: data.nome,
+                    average: data.total / data.count,
+                    total: data.total,
+                    answeredCount: data.answeredCount,
+                    sectionIndex: data.sectionIndex
+                });
+            });
+
+            // -------------------------------------------------------------------------
+            // 4. 🛑 ASSEGNAZIONE A WINDOW (QUESTO RISOLVE L'ERRORE DI SALVATAGGIO)
+            // -------------------------------------------------------------------------
+
+            window.currentNurse = infermiereDati;
+            window.totalScore = punteggioFinale;
+            window.sections = datiDelleSezioni;
+            window.selections = datiDelleSelezioni; // Aggiunto per il tuo report.html
+
+            // Debug
+            console.log(`✅ Calcolo completato. Punteggio: ${punteggioFinale.toFixed(2)}. Infermiere pronto: ${!!infermiereDati}`);
+        }
+
+        // =========================================================================
+        // 🛑 REGISTRAZIONE LISTENER (PER ATTIVARE IL CALCOLO)
+        // =========================================================================
+
+        window.addEventListener("DOMContentLoaded", () => {
+            // Avvia il calcolo iniziale (importante per popolare window all'avvio)
+            aggiornaDatiECalcolaPunteggio();
+
+            // Listener per la selezione dell'infermiere (se l'ID è 'selectInfermiere')
+            document.getElementById('selectInfermiere')?.addEventListener('change', aggiornaDatiECalcolaPunteggio);
+
+            // Listener per il valutatore (se l'ID è 'inputValutatore')
+            document.getElementById('inputValutatore')?.addEventListener('input', aggiornaDatiECalcolaPunteggio);
+
+            // Listener per tutti gli elementi che cambiano il punteggio (toggle, radio, ecc.)
+            document.querySelectorAll('.competence-toggle, input[type="radio"]').forEach(element => {
+                element.addEventListener('change', aggiornaDatiECalcolaPunteggio);
+            });
+        });
+
+        // =========================================================================
+        // 🔹 LISTENER DI SALVATAGGIO SU FIREBASE (Il tuo blocco originale, con validazione)
+        // =========================================================================
+
+        // ... (codice Firebase in cima) ...
+
+        document.getElementById("btnSaveEval").addEventListener("click", async () => {
+            // 🛑 1. Forza l'aggiornamento dei dati globali
+            if (typeof updateScores === 'function') {
+                updateScores();
+            }
+
+            // ====================================================================
+            // 🛑 LOGICA DI PULIZIA AGGRESSIVA DI undefined (SOLUZIONE FINALE)
+            // ====================================================================
+
+            const infermiereData = window.currentNurse || null;
+
+            // Se infermiereData esiste, creiamo una COPIA sicura, altrimenti è null
+            const infermiereObj = infermiereData ? {
+                // Se un campo interno è undefined, usiamo un fallback
+                id: infermiereData.id || "N/D",
+                nome: infermiereData.nome || "N/D",
+                cognome: infermiereData.cognome || "N/D",
+                matricola: infermiereData.matricola || "N/D",
+                valutatore: infermiereData.valutatore || "-", // Pulizia aggressiva del valutatore interno
+                // NON aggiungere qui altre proprietà che potrebbero essere undefined
+            } : null;
+
+            const valutazione = {
+                data: new Date().toISOString(),
+                reparto: document.getElementById("currentReparto")?.textContent || "N/D",
+
+                // Usiamo l'oggetto pulito: infermiereObj
+                infermiere: infermiereObj,
+
+                total: window.totalScore || 0,
+                sections: window.sections || [],
+                selections: window.selections || [],
+
+                // Il valutatore viene preso dalla COPIA PULITA, o dall'input, o da "-"
+                valutatore: infermiereObj?.valutatore || document.getElementById('inputValutatore')?.value || "-",
+            };
+
+            console.log("Oggetto 'valutazione' pronto per l'invio:", valutazione);
+
+            // 🛑 2. Controllo di validazione rigoroso
+            // Assicuriamo che infermiereObj sia un oggetto valido e abbia un ID valido
+            const infermiereIDValido = valutazione.infermiere && valutazione.infermiere.id && valutazione.infermiere.id.trim() !== '' && valutazione.infermiere.id !== 'N/D';
+            const punteggioValido = valutazione.total > 0;
+
+            // Log per debug (cosa fallisce esattamente)
+            console.log("DEBUG VALIDAZIONE FINALE: Infermiere ID valido:", infermiereIDValido, "Punteggio > 0:", punteggioValido);
+
+
+            if (!infermiereIDValido || !punteggioValido) {
+                console.error("❌ ERRORE CRITICO: Salvataggio annullato per dati incompleti.");
+                alert("❌ ERRORE: Assicurati di aver compilato la Matricola e completato la valutazione (punteggio > 0) prima di salvare.");
+                return;
+            }
+
+            // 🛑 3. Salvataggio su Firebase (solo se la validazione è superata)
+            try {
+                // ====================================================================
+                // 🔥 ULTIMA PULIZIA: Rimuove OGNI 'undefined' residuo (Soluzione definitiva)
+                // ====================================================================
+                const valutazionePulita = JSON.parse(JSON.stringify(valutazione));
+
+                await addDoc(collection(db, "valutazioni"), valutazionePulita); // Usa la COPIA PULITA
+                alert("✅ Valutazione salvata su Firebase! Ricarica la pagina Report per visualizzare.");
+            } catch (e) {
+                console.error("Errore salvataggio Firebase:", e);
+                alert("❌ Errore durante il salvataggio: " + e.message);
+            }
+        });</script>
+
 </body>
 </html>
