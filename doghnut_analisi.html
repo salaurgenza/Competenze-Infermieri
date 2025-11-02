@@ -82,31 +82,31 @@
         const THEME_KEY = 'mappa_tiro_tema';
         let chart = null;
 
-        
+
         const repartiMap = {
-        'Chirurgia Generale': { 
-             name: 'Chirurgia Generale', 
-             color: "#a8dadc", // Azzurro pastello
-             sigla: 'CG' 
-        },
-        'Chirurgie Specialistiche': { 
-            name: 'Chirurgie Specialistiche', 
-            color: "#f7a8a8", // Rosa pastello
-            sigla: 'CS' 
-        },
-        'Day Surgery Oculistica': { 
-            name: 'Day Surgery Oculistica', 
-            color: "peachpuff", // Pesca pastello
-            sigla: 'DSO' 
-        },
+            'Chirurgia Generale': {
+                name: 'Chirurgia Generale',
+                color: "#a8dadc", // Azzurro pastello
+                sigla: 'CG'
+            },
+            'Chirurgie Specialistiche': {
+                name: 'Chirurgie Specialistiche',
+                color: "#f7a8a8", // Rosa pastello
+                sigla: 'CS'
+            },
+            'Day Surgery Oculistica': {
+                name: 'Day Surgery Oculistica',
+                color: "peachpuff", // Pesca pastello
+                sigla: 'DSO'
+            },
         };
 
 
         const classiMap = {
-            4: { label: "Form", color: "#cdb4db" }, 
-            3: { label: "Aut", color: "turquoise" },  
-            2: { label: "Ind", color: "wheat" }, 
-            1: { label: "Dir", color: "#f7a8a8" },  
+            4: { label: "Form", color: "#cdb4db" },
+            3: { label: "Aut", color: "turquoise" },
+            2: { label: "Ind", color: "wheat" },
+            1: { label: "Dir", color: "#f7a8a8" },
         };
 
         const levelOrder = [4, 3, 2, 1]; // Ordine Classi per garantire coerenza
@@ -242,7 +242,7 @@
             }
         }
 
-        
+
         function initChart(data) {
             const ctx = document.getElementById("targetChart").getContext("2d");
 
@@ -339,9 +339,9 @@
                     const item = document.createElement('div');
                     item.className = 'flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-700 shadow-sm';
                     item.innerHTML = `
-                            <span class="w-4 h-4 rounded-full" style="background-color: ${info.color}; border: 1px solid ${isDarkMode() ? '#e5e7eb' : '#374151'};"></span>
-                            <span>Livello ${level}: ${info.label}</span>
-                        `;
+                                <span class="w-4 h-4 rounded-full" style="background-color: ${info.color}; border: 1px solid ${isDarkMode() ? '#e5e7eb' : '#374151'};"></span>
+                                <span>Livello ${level}: ${info.label}</span>
+                            `;
                     legendContainer.appendChild(item);
                 }
             });
@@ -395,6 +395,116 @@
             // Ricarica la legenda (per l'eventuale cambio di colore del bordo)
             renderLegend();
         });</script>
+    <script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        // 🔥 Configurazione esattamente come in report.html
+        const firebaseConfig = {
+            apiKey: "AIzaSyDuDjV6nU5YuNfkivTKJ1kf6NwmkGRIi34",
+            authDomain: "clinicalcompetenceor.firebaseapp.com",
+            projectId: "clinicalcompetenceor",
+            storageBucket: "clinicalcompetenceor.firebasestorage.app",
+            messagingSenderId: "91172915109",
+            appId: "1:91172915109:web:f548cb1f92fb5ae08f8a4c",
+            measurementId: "G-V547BJD3VC"
+        };
+
+        // Inizializza Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ======================================================
+        // 🔹 SOSTITUZIONE FUNZIONE loadAndAggregateData()
+        //    per leggere le valutazioni da Firestore invece che da localStorage
+        // ======================================================
+        async function loadAndAggregateDataFromFirestore() {
+            const snapshot = await getDocs(collection(db, "valutazioni"));
+            if (snapshot.empty) return null;
+
+            const data = {};
+            snapshot.forEach(docSnap => {
+                const val = docSnap.data();
+                if (!val.reparto || !val.infermiere) return;
+
+                if (!data[val.reparto]) data[val.reparto] = { infermieri: [] };
+                data[val.reparto].infermieri.push({
+                    nome: val.infermiere.nome,
+                    valutazioni: [val]
+                });
+            });
+
+            // 🔁 Riusa la stessa logica di aggregazione
+            return window.loadAndAggregateDataFromObject(data);
+        }
+
+        // ======================================================
+        // 🔹 Wrapper per riutilizzare la funzione originale
+        // ======================================================
+        window.loadAndAggregateDataFromObject = function (data) {
+            let aggregatedData = {};
+            for (const repartoKey in data) {
+                if (data[repartoKey].infermieri) {
+                    data[repartoKey].infermieri.forEach(nurse => {
+                        const lastEval = nurse.valutazioni ? nurse.valutazioni.find(v => v.reparto === repartoKey) : null;
+                        if (lastEval) {
+                            const sectionsWithAvg = lastEval.sections.filter(s => (s.answeredCount || 0) > 0);
+                            const totalAverage = sectionsWithAvg.reduce((sum, s) => sum + (s.average || 0), 0);
+                            const answeredGroups = sectionsWithAvg.length;
+                            const overallAverage = answeredGroups > 0 ? totalAverage / answeredGroups : 0;
+                            const overallLevel = Math.min(4, Math.max(1, Math.ceil(overallAverage)));
+
+                            lastEval.sections.forEach(section => {
+                                if ((section.answeredCount || 0) > 0) {
+                                    const repInfo = repartiMap[repartoKey];
+                                    if (!repInfo) return;
+                                    const key = `${repartoKey}|${section.key || section.nome}|${overallLevel}`;
+                                    aggregatedData[key] = (aggregatedData[key] || 0) + 1;
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+            return aggregatedData;
+        };
+
+        // ======================================================
+        // 🔹 Inizializzazione grafico modificata
+        // ======================================================
+        async function init() {
+            applyTheme(currentTheme);
+
+            const aggregatedCounts = await loadAndAggregateDataFromFirestore();
+
+            const chartDiv = document.getElementById('targetChart');
+            const noDataMsg = document.getElementById('noDataMessage');
+            const centerText = document.getElementById('centerText');
+
+            if (!aggregatedCounts || Object.keys(aggregatedCounts).length === 0) {
+                chartDiv.style.display = 'none';
+                centerText.style.display = 'none';
+                noDataMsg.classList.remove('hidden');
+                return;
+            }
+
+            const chartData = prepareChartData(aggregatedCounts);
+            if (!chartData || chartData.reparto.data.length === 0) {
+                chartDiv.style.display = 'none';
+                centerText.style.display = 'none';
+                noDataMsg.classList.remove('hidden');
+                return;
+            }
+
+            noDataMsg.classList.add('hidden');
+            chartDiv.style.display = 'block';
+            centerText.style.display = 'block';
+
+            chart = initChart(chartData);
+            renderLegend();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);</script>
+
 </body>
 </html>
 
