@@ -1,0 +1,998 @@
+﻿<!doctype html>
+<html lang="it">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Valutazioni - Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>// Configurazione Tailwind per abilitare la dark mode tramite classe 'dark' sul tag <html>
+        tailwind.config = {
+            darkMode: 'class',
+        }</script>
+    <style>
+        body {
+            font-family: 'Inter',sans-serif
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-200 transition-colors duration-300">
+    <header class="bg-blue-700 text-white px-6 py-4 flex items-center justify-between">
+        <h1 class="text-xl font-semibold">Report Valutazioni</h1>
+        <div class="flex items-center space-x-3">
+            <button id="themeToggle" class="bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors" aria-label="Cambia tema">
+                <span id="themeIcon">☀️</span>
+            </button>
+            <a href="index.html" class="bg-white/10 hover:bg-white/20 px-3 py-1 rounded transition-colors">Torna inserimento</a>
+        </div>
+    </header>
+
+    <main class="p-6 max-w-6xl mx-auto space-y-6">
+
+        <div class="grid md:grid-cols-3 gap-6">
+
+            <section class="space-y-4 md:col-span-1">
+                <div class="bg-white dark:bg-gray-800 p-4 rounded shadow dark:shadow-lg space-y-3 transition-colors duration-300">
+                    <h3 class="font-semibold mb-2">Filtri</h3>
+                    <div>
+                        <label class="block text-sm mb-1">Filtro Reparto</label>
+                        <select id="filterReparto" class="p-2 border rounded w-full bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                            <option value="">— Tutti —</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm mb-1">Ricerca testo</label>
+                        <input id="searchText" class="p-2 border rounded w-full dark:bg-gray-700 dark:border-gray-600" placeholder="cerca nome, reparto, matricola...">
+                    </div>
+                </div>
+            </section>
+
+            <div class="md:col-span-2 space-y-6">
+                <section class="bg-white dark:bg-gray-800 p-4 rounded shadow dark:shadow-lg transition-colors duration-300">
+                    <h3 class="font-semibold mb-2">Distribuzione per livello medio (Totale)</h3>
+                    <div class="h-64">
+                        <canvas id="barChart" class="w-full h-full"></canvas>
+                    </div>
+                </section>
+            </div>
+        </div>
+        
+        <section class="grid md:grid-cols-3 gap-4">
+            <div class="bg-white dark:bg-gray-800 p-4 rounded shadow dark:shadow-lg transition-colors duration-300">
+                <h3 class="font-semibold mb-2">S.O. Ch. Specialistiche</h3>
+                <div class="h-64">
+                    <canvas id="pieChartSpecialistiche" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 p-4 rounded shadow dark:shadow-lg transition-colors duration-300">
+                <h3 class="font-semibold mb-2">S.O. Ch. Generali</h3>
+                <div class="h-64">
+                    <canvas id="pieChartGenerali" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 p-4 rounded shadow dark:shadow-lg transition-colors duration-300">
+                <h3 class="font-semibold mb-2">S.O. DS Oculistica</h3>
+                <div class="h-64">
+                    <canvas id="pieChartOculistica" class="w-full h-full"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="p-4 rounded shadow bg-white dark:bg-gray-800 text-center">
+            <button onclick="window.location.href='doghnut_analisi.html'" class="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold px-6 py-2 rounded transition-colors text-lg">
+                Vai all'Analisi Mappa Competenze Gerarchica 📊
+            </button>
+        </section>
+        <section class="bg-white dark:bg-gray-800 p-4 rounded shadow dark:shadow-lg transition-colors duration-300">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-semibold text-blue-700 dark:text-blue-300">🤖 Analisi Qualitativa e Azioni di Miglioramento</h3>
+                <button id="btnAnalyze" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded transition-colors">Esegui Analisi AI</button>
+            </div>
+            <div id="aiAnalysisResults" class="mt-4 p-4 border rounded border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 min-h-[100px] text-sm">
+                Clicca su "Esegui Analisi AI" per generare un report sulla distribuzione delle competenze e le azioni raccomandate.
+            </div>
+        </section>
+
+        <section class="bg-white dark:bg-gray-800 p-4 rounded shadow dark:shadow-lg transition-colors duration-300">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-semibold">Tabella valutazioni (Clicca sulla riga per i dettagli)</h3>
+                <div class="flex gap-2">
+                    <button id="exportJSON" class="bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 px-3 py-1 rounded transition-colors">Esporta JSON</button>
+                    <button id="exportCSV" class="bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 px-3 py-1 rounded transition-colors">Esporta CSV</button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table id="resultsTable" class="w-full text-sm table-auto">
+                    <thead class="bg-gray-100 dark:bg-gray-700">
+                        <tr>
+                            <th class="p-2 text-left">Data Valutazione</th>
+                            <th class="p-2 text-left">Nome e Cognome</th>
+                            <th class="p-2 text-left">Matricola</th>
+                            <th class="p-2 text-left">Reparto</th>
+                            <th class="p-2 text-left">Livello Medio</th>
+                            <th class="p-2 text-left">Punteggio Tot.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <div id="detailsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-4xl shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-start mb-4 border-b pb-2">
+                <h3 id="modalNurseName" class="text-2xl font-bold text-blue-700 dark:text-blue-300">Dettagli Valutazione</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 text-xl font-bold">&times;</button>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="text-lg font-semibold mb-2">Riepilogo Infermiere</h4>
+                    <div id="nurseDetailsSummary" class="text-sm space-y-1">
+                    </div>
+
+                    <h4 class="text-lg font-semibold mt-6 mb-2">Livelli di Competenza Dettagliati</h4>
+                    <div id="competenceDetails" class="text-sm space-y-3 max-h-96 overflow-y-auto pr-2">
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-semibold mb-2">Performance per Area (Radar)</h4>
+                    <div class="h-96 w-full">
+                        <canvas id="radarDetailsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 text-right">
+                <button id="modalCloseBottom" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>const STORAGE_KEY = 'valutazioni_dashboard_v2';
+        const THEME_KEY = 'valutazioni_theme';
+
+        let all = [];
+        let barChart;
+        let pieCharts = {};
+        let radarDetailsChart = null; // Riferimento al grafico radar della modale
+
+        // Struttura dati fissa delle competenze (necessaria per ricostruire i dettagli item)
+        const COMPETENCE_DATA = {
+            "Chirurgia Generale": [
+                {
+                    key: 'Chirurgia Addominale',
+                    questions: [
+                        'LAPAROTOMIA ESPLORATIVA, ERNIOPLASTICA INGUINALE, ERNIOPLASTICA OMBELICALE, PLASTICA DI PARETE CON PROTESI',
+                        'LAPAROSCOPIA ESPLORATIVA, ERNIOPLASTICA INGUINALE, COLECISTECTOMIA, APPENDICECTOMIA, LPS DIAGNOSTICA CON O SENZA PIPAC, LPS DIAGNOSTICA CON O SENZA BIOPSIE',
+                        'CONFEZIONAMENTO ILEOSTOMIA, CONFEZIONAMENTO COLONSTOMIA, CONFEZIONAMENTO DIGIUNOSTOMIA, CHIUSURA ILEOSTOMIA, CHIUSURA COLONSTOMIA, RIPARAZIONE ERNIA IATALE',
+                        'APPENDICECTOMIA LAPAROTOMICA, COLECISTECTOMIA LAPAROTOMICA',
+                        'APPENDICECTOMIA LAPAROSCOPICA, COLECISTECTOMIA LAPAROSCOPICA',
+                        'FUNDOPLICATIO ROBOT ASSISTITA',
+                        'AMPUTAZIONE ADDOMINO - PERINEALE SEC MILES LAPAROTOMICA, ANASTOMOSI ILEO COLICA LAPAROTOMICA, ANASTOMOSI COLO COLICA LAPAROTOMICA, EMICOLECTOMIA DX LAPAROTOMICA, EMICOLECTOMIA SIN LAPAROTOMICA, RESEZIONE ANTERIORE DEL RETTO LAPAROTOMICA, RESEZIONE SEGMENTARIA MULTIPLA INTESTINALE LAPAROTOMICA, RESEZIONE DEL SIGMA LAPAROTOMICA, RESEZIONE TENUALE LAPAROTOMICA, RICANALIZZAZIONE COLO - RETTALE POST HARTAMANN SENZA RESEZIONE LAPAROTOMICA, RESEZIONE ILEALE LAPAROTOMICA, RESEZIONE COLON TRASVERSO LAPAROTOMICA, RESEZIONE DEL SIGMA RETTO LAPAROTOMICA, GASTRECTOMIA SUBTOTALE / TOTALE LAPAROTOMICA',
+                        'AMPUTAZIONE ADDOMINO - PERINEALE SEC MILES LPS, ANASTOMOSI ILEO COLICA LPS, ANASTOMOSI COLO COLICA LPS, EMICOLECTOMIA DX LPS, EMICOLECTOMIA SIN LPS, RESEZIONE ANTERIORE DEL RETTO, RESEZIONE SEGMENTARIA MULTIPLA INTESTINALE, RESEZIONE DEL SIGMA LPS, RESEZIONE TENUALE LPS, RICANALIZZAZIONE COLO - RETTALE POST HARTAMANN SENZA RESEZIONE LPS, RESEZIONE ILEALE LPS, RESEZIONE COLON TRASVERSO LPS, RESEZIONE DEL SIGMA RETTO LPS, GASTRECTOMIA SUBTOTALE / TOTALE LPS',
+                        'RESEZIONE ANTERIORE DEL RETTO ROBOT ASSISTITA, SPLENOPANCREASECTOMIA DISTALE ROBOT ASSISTITA, EMICOLECTOMIA DX ROBOT ASSISTITA, EMICOLECTOMIA SIN ROBOT ASSISTITA',
+                        'SPLENECTOMIA, SPLENOPANCREASECTOMIA DISTALE LAPAROTOMICA',
+                        'SPLENECTOMIA, SPLENOPANCREASECTOMIA DISTALE LAPAROSCOPICA',
+                        'SPLENOPANCREASECTOMIA DISTALE ROBOT ASSISTITA',
+                        'PERITONECTOMIA SELETTIVA CON O SENZA HIPEC, CITORIDUZIONE CON O SENZA HIPEC',
+                        'TATME (TRANSANAL TOTAL MESORECTAL EXCISION) LAPAROSCOPICO',
+                        'DUODENOCEFALOPANCREASECTOMIA',
+                        'DUODENOCEFALOPANCREASECTOMIA ROBOT ASSISTITA',
+                        'ESOFAGECTOMIA'
+                    ]
+                },
+                {
+                    key: 'Chirurgia Vascolare',
+                    questions: [
+                        'LEGATURA E STRIPPING DI VENE DELL’ARTO INFERIORE',
+                        'AMPUTAZIONE RAGGIO DEL PIEDE, AMPUTAZIONE SOTTO IL GINOCCHIO',
+                        'ENDOARTERIECTOMIA DELLA BIFORCAZIONE CAROTIDEA, ASPORTAZIONE DI PARAGANGLIOMA CAROTIDEO, ENDOARTERIECTOMIA DEL TRIPODE FEMORALE',
+                        'ANGIOPLASTICA ARTERIA FEMORALE, ANGIOPLASTICA ARTERIA ILIACA, ANGIOPLASTICA ARTERIA POPLITEA, ANGIOPLASTICA ARTERIA SUCCLAVIA, ANGIOPLASTICA CAROTIDEA CON INSERIZIONE DI STENT, ANGIOPLASTICA E STENT ARTERIA FEMORALE, ANGIOPLASTICA E STENT ARTERIA ILIACA, ANGIOPLASTICA E STENT ARTERIA POPLITEA, ANGIOPLASTICA E STENT IN VASO PERIFERICO, ANGIOPLASTICA VASI ADDOMINALI, ARTERIOGRAFIA, ESCLUSIONE ENDOVASCOLARE DELL’AORTA TORACICA, ESCLUSIONE ENDOVASCOLARE DELL’ARCO AORTICO, ESCLUSIONE ENDOVASCOLARE DI ANEURISMA DELL’AORTA ADDOMINALE SOTTORENALE, ESCLUSIONE ENDOVASCOLARE DI ANEURISMA DELL’AORTA ADDOMINALE SOPRARENALE',
+                        'BY PASS AORTO RENALE, INNESTO AORTO BISILIACO, BY PASS AORTO - ILIACO BIFEMORALE, INNESTO AORTO AORTICO SOPRARENALE CON PERFUSIONE IPOTERMICA ARTERIE RENALI, BY PASS FEMORO FEMORALE, BY PASS AXILLO BIFEMORALE, BYPASS AORTO - ILIACO MESENTERICO, BY PASS FEMORO POPLITEO SOTTOGENICOLARE IN SAFENA, RESEZIONE VASCOLARE ADDOMINALE ARTERIOSA, BY PASS CAROTIDEO SUCCLAVIO, BY PASS FEMORO POPLITEO SOTTOGENICOLARE IN PROTESI, BY PASS AORTO ILIACO BIFEMORALE, INNESTO AORTO BISILIACO',
+                        'INNESTO AORTO AORTICO TORACO - ADDOMINALE'
+                    ]
+                },
+                {
+                    key: 'Chirurgia Endocrino e Metabolica',
+                    questions: [
+                        'LOBOISTMECTOMIA TIROIDEA, TIROIDECTOMIA TOTALE, TIROIDECTOMIA TOTALE + LINFOADENECTOMIA DEL COMPARTIMENTO CENTRALE, PARATIROIDECTOMIAEMI, TIROIDECTOMIA TOTALE + LINFOADENECTOMIA LATERO CERVICALE',
+                        'TIROIDECTOMIA ROBOT ASSISTITA',
+                        'SLEEVE GASTRECTOMY LAPAROTOMICA, SADIS LAPAROTOMICA, BYPASS GASTRICO LAPAROTOMICO',
+                        'SLEEVE GASTRECTOMY LPS, SADIS LPS, BYPASS GASTRICO LPS, MINI - BYPASS GASTRICO LPS, REVISIONE DI DIVERSIONE BILIO - PANCREATICA LPS',
+                        'SLEEVE GASTRECTOMY ROBOT ASSISTITA, SADIS ROBOT ASSISTITA, BYPASS GASTRICO ROBOT ASSISTITA',
+                        'SURRENECTOMIA LAPAROTOMICA',
+                        'SURRENECTOMIA ROBOT ASSISTITA'
+                    ]
+                },
+                {
+                    key: 'Chirurgia EpatoBiliare',
+                    questions: [
+                        'FENESTRAZIONE DI CISTI EPATICA LPS',
+                        'RESEZIONI EPATICHE LIMITATE LPT, SEGMENTECTOMIA EPATICA / BISEGMENTECTOMIA EPATICA ANATOMICHE SETTORIALI LPT',
+                        'RESEZIONI EPATICHE LIMITATE LPS, SEGMENTECTOMIA EPATICA / BISEGMENTECTOMIA EPATICA ANATOMICHE SETTORIALI LPS',
+                        'RESEZIONI EPATICHE LIMITATE ROBOT ASSISTITA, SEGMENTECTOMIA EPATICA / BISEGMENTECTOMIA EPATICA ANATOMICHE SETTORIALI ROBOT ASSISTITA',
+                        'EPATETOMIA SINISTRA / DX LPT, MESOEPATECTOMIA LPT, TWO STAGE EPATECTOMY LPT, ALPPS LPT',
+                        'EPATETOMIA SINISTRA / DX LPS, MESOEPATECTOMIA LPS, TWO STAGE EPATECTOMY LPS, ALPPS LPS',
+                        'EPATETOMIA SINISTRA / DX ROBOT ASSISTITA, MESOEPATECTOMIA ROBOT ASSISTITA'
+                    ]
+                },
+                {
+                    key: 'Chirurgia Toracica',
+                    questions: [
+                        'TORACOTOMIA ESPLORATIVA, BIOPSIE PLEURICHE, BIOPSIE LINFONODALI, PLASTICA DI ERNIA DIAFRAMMATICA, ASPORTAZIONE DI LESIONE DELLA PARETE TORACICA',
+                        'SIMPATICOFRASSI, TORACOSCOPIA ESPLORATIVA, BIOPSIE PLEURICHE TORACOSCOPICHE',
+                        'RESEZIONE POLMONARE ATIPICA TORACOTOMICA, LOBECTOMIA POLMONARE TORACOTOMICA, BILOBECTOMIA POLMONARE TORACOTOMICA, APICECTOMIA POLMONARE TORACOTOMICA, SEGMENTECTOMIA POLMONARE TORACOTOMICA, PNEUMECTOMIA TORACOTOMICA',
+                        'RESEZIONE POLMONARE ATIPICA TORACOSCOPICA, LOBECTOMIA POLMONARE TORACOSCOPICA, BILOBECTOMIA POLMONARE TORACOSCOPICA, APICECTOMIA POLMONARE TORACOSCOPICA, SEGMENTECTOMIA POLMONARE TORACOSCOPICA',
+                        'SEGMENTECTOMIA / LOBECTOMIA POLMONARE ROBOT ASSISTITA',
+                        'TIMECTOMIA STERNOTOMICA',
+                        'TIMECTOMIA ROBOT ASSISTITA'
+                    ]
+                },
+                {
+                    key: 'Chirurgia Trapianti',
+                    questions: [
+                        'TX DI RENE DA VIVENTE / MORTE',
+                        'TX DI FEGATO'
+                    ]
+                },
+                {
+                    key: 'Chirurgia Urologia',
+                    questions: [
+                        'TURV, TURP',
+                        'URETEROSCOPIA (RIRS, ULT, PCNL)',
+                        'ASPORTAZIONE IDROCELE, ASPORTAZIONE O DEMOLIZIONE DI LESIONE DEL PENE, BIOPSIA PENE, BIOPSIA PROSTATICA, CATETERIZZAZIONE URETERALE, CIRCONCISIONE, CORPOROPLASTICA PENIENA, INCISIONE E DRENAGGIO SCROTO E TUNICA VAGINALE, BIOPSIA TRANSPERINEALE DELLA PROSTATA, ORCHIECTOMIA MONOLATERALE / BILATERALE',
+                        'PIELOPLASTICA, REIMPIANTO URETERE ACQUISITO, RESEZIONE TRANSURETRALE LESIONE VESCICALE O NEOPLASIA, SOSPENSIONE URETRALE SOVRAPUBICA CON SLING',
+                        'CISTECTOMIA LAPAROTOMICA',
+                        'NEFRECTOMIA PARZIALE / RADICALE LAPAROTOMICA, ENUCLEORESEZIONE RENALE LAPAROTOMICA',
+                        'NEFRECTOMIA PARZIALE / RADICALE LPS, ENUCLEORESEZIONE RENALE LPS, NEFROURETERECTOMIA LPS',
+                        'NEFRECTOMIA PARZIALE / RADICALE ROBOT ASSISTITA, ENUCLEORESEZIONE RENALE ROBOT ASSISTITA, NEFROURETERECTOMIA ROBOT ASSISTITA',
+                        'PROSTATECTOMIA LAPAROTOMICA',
+                        'PROSTATECTOMIA ROBOT ASSISTITA'
+                    ]
+                },
+                {
+                    key: 'Chirurgia Pediatrica',
+                    questions: [
+                        'CHIUSURA DI COLOSTOMIA CON RESEZIONE E ANASTOMOSI, CHIUSURA DI ILEOSTOMIA CON RESEZIONE E ANASTOMOSI',
+                        'LPS ESPLORATIVA, APPENDICECTOMIA LAPAROSCOPICA',
+                        'PLASTICA DI ERNIA INGUINALE, CHIUSURA DEL DOTTO PERITONEO - VAGINALE, CIRCONCISIONE, ASPORTAZIONE DI IDROCELE, ASPORTAZIONE DI VARICOCELE, ORCHIOPESSI MONOLATERALE / BILATERALE, RIPARAZIONE DI IPOSPADIA, BIOPSIA DI LINFONODI',
+                        'CISTOSCOPIA, PIELOPLASTICA, CHIUSURA DI FISTOLA URETRALE',
+                        'ESOFAGO - ESOFAGOSTOMIA INTRATORACICA'
+                    ]
+                }
+            ],
+
+
+            "Chirurgie Specialistiche": [
+                {
+                    key: 'Ch. Senologica', questions: [
+                        'Biopsia del linfonodo sentinella, escissione nodulo mammario, quadrantectomia mammaria',
+                        'Mastectomia semplice/radicale monolaterale/bilaterale, linfoadenectomia ascellare monolaterale/bilaterale',
+                        'Quadrantectomia mammaria con mastoplastica riduttiva, mastectomia nipple sparing or skin sparing/reducing monolaterale/bilaterale'
+                    ]
+                },
+                {
+                    key: 'Ch. plastica', questions: [
+                        'Asportazione radicale di lesione della cute, allargamento cicatrice chirurgia pregresso melanoma e biopsia del linfonodo sentinella',
+                        'Liposuzione in esiti chirurgia bariatrica e della mammella, lifting braccia-addome e cosce, rimozione protesi della mammella, inserzione di espansore tissutale della mammella mono/bilaterale',
+                        'Asportazione neoformazioni cutanee estese con innesto lembo di scorrimento',
+                        'Mastopessi/mastoplastica riduttiva mono-bilaterale, ricostruzione mammaria con protesi mono/bilaterale',
+                        'Anastomosi venolinfatiche per linfedema arto inferiore/superiore, lembo microchirurgico/peduncolato per ricostruzione mammaria, ricostruzione con innesto cutaneo/lembo locale a distanza-microvascolare del perineo e della vulva'
+                    ]
+                },
+                {
+                    key: 'Ortopedia e Traumatologia',
+                    questions: [
+                        'CHIRURGIA OMERO frattura, pseudoartrosi, neoformazione, infezioni osteo-articolari: sintesi percutanea con fissatore esterno, sintesi con placca e viti/chiodo endomidollare, osteotomia, rimozione mezzi di sintesi, biopsia percutanea/open e asportazione neoformazioni muscolo-scheletriche, innesti ossei, amputazione, impianto spaziatore',
+                        'CHIRURGIA RADIO/ULNA (frattura, pseudoartrosi, neoformazione, lussazione): sintesi percutanea con fissatore esterno, sintesi con placca e viti/chiodo endomidollare, osteotomia, rimozione mezzi di sintesi, biopsia percutanea/open e asportazione neoformazioni muscolo-scheletriche, innesti ossei, amputazione, riduzione incruenta',
+                        'CHIRURGIA GOMITO (frattura, lussazione): artrolisi artroscopica, sintesi, protesi totale',
+                        'CHIRURGIA MANO/PIEDE (frattura, neoformazione, lussazione): amputazione, correzione dita, rimozione mezzi di sintesi, biopsia e asportazione neoformazione, revisione, sintesi con placche e viti/fili di k, osteotomia, rimozione corpi estranei, innesti ossei, neurolisi e tenolisi.',
+                        'CHIRURGIA SPALLA Endoprotesi e artroprotesi totale, artroscopia per sinovialectomia -artrolisi-lesione cuffie rotatori',
+                        'CHIRURGIA SCAPOLA/CLAVICOLA sintesi con placca e viti, biopsia, rimozione mezzi di sintesi, osteotomia',
+                        'CHIRURGIA COSTE/STERNO biopsia open/percutanea',
+                        'CHIRURGIA BACINO sintesi percutanea e/o con fissatore esterno, sintesi con placche e viti, biopsia open/percutanea, rimozione mezzi di sintesi',
+                        'CHIRURGIA ANCA (frattura, coxartrosi, lussazione, neoformazione): endoprotesi, artroprotesi totale, innesti ossei, revisione, impianto e rimozione spaziatore',
+                        'CHIRURGIA FEMORE (frattura, neoformazione, infezione): sintesi con placca e viti/ chiodo endomidollare, sintesi percutanea con fissatore esterno, rimozione mezzi di sintesi, innesti ossei, impianto e rimozione spaziatore, allungamento',
+                        'CHIRURGIA GINOCCHIO riduzione incruenta, protesi totale/gonartrosi primaria e secondaria, artroscopia per artrolisi-sinovialectomia-sutura meniscale-meniscectomia, rimozione e impianto spaziatore, revisione, amputazione, ricostruzione legamento crociato anteriore, artroscopia/open del legamento collaterale del ginocchio e crociato anteriore.',
+                        'CHIRURGIA TIBIA/PERONE (frattura, pseudoartrosi, neoformazioni, infezioni osteo-articolari) allungamento con innesto osseo/fissatore esterno, sintesi con placca e viti/chiodo endomidollare, sintesi percutanea con fissatore esterno, biopsia percutanea/open, osteotomia, rimozione mezzi di sintesi, innesti ossei, toilette chirurgica, impianto e rimozione spaziatore',
+                        'CHIRURGIA TESSUTI MOLLI/TENDINI E ARTICOLAZIONI fasciotomia per sdr compartimentale, riparazione e innesti tendinei e della cartilagine articolare, tenorrafia, decompressione, toilette ferita chirurgica',
+                    ]
+                },
+                {
+                    key: 'Chirurgia Vertebrale',
+                    questions: [
+                        'CHIRURGIA VERTEBRALE BASE biopsia percutanea/open, cifoplastica vertebroplastica, microdiscectomia',
+                        'CHIRURGIA VERTEBRALE MEDIA decompressione del canale vertebrale/radicolare, rimozione di mezzi di sintesi, trazione cervicale con applicazione di Halo',
+                        'CHIRURGIA VERTEBRALE ELEVATA artrodesi: cervicale anteriore/posteriore, dorsale e dorso-lombare con/senza cage open/percutaneo, lombare anterolaterale (XLIF) e posteriore open/percutaneo, lombare anteriore (ALIF) e posteriore percutanea/open',
+                    ]
+                },
+                {
+                    key: 'Neurochirurgia',
+                    questions: [
+                        'CHIRURGIA DELL/IDROCEFALO: derivazioni lombo-peritoneali, ventricolo-atriali, ventricolo-peritoneali, derivazione ventricolare esterna',
+                        'REVISIONE E RIMOZIONE SISTEMA DI DERIVAZIONE LIQUORALE: VENTRICOLO-PERITONEALE, SPINO-PERITONEALE.',
+                        'CHIRURGIA ENDOSCOPICA CEREBRALE: TERZOVENTRICOLOSTOMIA ENDOSCOPICA, VENTRICOLOSTOMIA ENDOSCOPICA.',
+                        'CHIRURGIA TRAUMATOLOGICA: EVACUAZIONE MONOLATERALE E BILATERALE DI EMATOMA SOTTODURALE, EMATOMA SUBDURALE, CRANIOTOMIA CON EVACUAZIONE DI EMATOMA SOTTODURALE.',
+                        'INTERVENTI CHIRURGICI SU LESIONI DELLA BASE CRANICA: ASPORTAZIONE LESIONE SELLARE PER VIA ENDOSCOPICA, RIPARAZIONE FISTOLA LIQUORALE PER VIA TRASFENOIDALE ENDOSCOPICA',
+                        'CHIRURGIA DEI NERVI PERIFERICI: NEUROLISI TUNNEL CARPALE, NEUROLISI TUNNEL CUBITALE.',
+                        'NEUROCHIRURGIA FUNZIONALE: DEEP BRAIN STIMULATION (DBS)',
+                        'NEUROCHIRURGIA FUNZIONALE: IMPIANTO/REVISIONE/SOSTITUZIONE ELETTRODO E GENERATORE PER STIMOLAZIONE NERVO VAGO.',
+                        'NEUROCHIRURGIA FUNZIONALE: IMPIANTO/REVISIONE/SOSTITUZIONE ELETTRODO E GENERATORE PER STIMOLAZIONE MIDOLLARE (SCS).',
+                        'NEUROCHIRURGIA FUNZIONALE: IMPIANTO DI SISTEMA DI INFUSIONE INTRATECALE.',
+                        'INTERVENTI CHIRURGICI SULLA COLONNA VERTEBRALE: ERNIE DISCALI LOMBARI-CERVICALI, STENOSI DELLA COLONNA CERVICALE-LOMBARE, STABILIZZAZIONI.',
+                        'INTERVENTI CHIRURGICI CRANICI MAGGIORI: TUMORALI, VASCOLARI, TRAUMATICI, MALFORMATIVI.',
+                        'CHIRURGIA VASCOLARE CEREBRALE: CLIPPING DI ANEURISMA CEREBRALE, MALFORMAZIONI ARTERO-VENOSE (MAV)',
+                        'CHIRURGIA DELLA RIVASCOLARIZZAZIONE CEREBRALE: BYPASS CEREBRALE EXTRACRANICO-INTRACRANICO',
+                        'CRANIOPLASTICA: CUSTOM MADE, OSSO AUTOLOGO',
+                        'INTERVENTI CHIRURGICI PER NEVRALGIA TRIGEMINALE: COMPRESSIONE PERCUTANEA CON PALLONCINO DEL GANGLIO DEL GASSER, DECOMPRESSIONE TRIGEMINALE CON CRANIOTOMIA',
+                        'INTERVENTO CHIRURGICO PER CORREZIONE MALFORMAZIONE DI CHIARI OSSO E OSSO-TONSILLE CEREBELLARI (NEUROCHIRURGIA INFANTILE)',
+                        'CRANIOPLASTICA ESPANSIVA-RICOSTRUTTIVA: BIPARIETALE, OCCIPITALE, FRONTO-ORBITARIA (NEUROCHIRURGIA INFANTILE)'
+                    ]
+                },
+                {
+                    key: 'Otorinolaringoiatria',
+                    questions: [
+                        'CAVO ORALE: adenotonsillectomia, aportazione neoformazione labbro, guancia, lingua e faringea. Uvulofaringopalatoplastica, asportazione corpo estraneo faringeo e laringeo, incisione ascesso tonsillare, marsupializzazione del dotto salivare e dell/ascesso parotideo. Scialoendoscopia, frenuloplastic linguale, riparazione fistola oroantrale e oronasale, asportazione neoformazione del palato duro ,asporazione di ranula sotto liguale e gengivale. MicroLaringoscopia ',
+                        'NASO: RIMOZIONE CORPO ESTRANEO NARICE, RINOFARINGEO E DEL SENO MASCELLARE. SETTOPLASTICA, RINOSETTOPLASTICA, RIMOZIONE DI POLIPI ANTROCOANALE, TURBINECTOMIA E TURBINOTOMIA, EMOSTASI VARISI NASALI, EXENTERATIO ORBITARIE, CHIRURGIA DEI SENI PARANASALI E DELL’ORBITA PER VIA ENDOSCOPICA, FRATTURA OSSA NASALI, ATRESIA COANALE, DACRIOCISTORINOSTOMIA.',
+                        'ORECCHIO: CHIUSURA FISTOLA OTO-LIQUORALE, MASTOIDECTOMIA, EXERESI COLESTEATOMA DELLA ROCCA, ATRESIA AURIS, LABIRINTECTOMIA, MEATOPLASTICA, MIRINGOPLASTICA, MIRINGOTOMIA, OSSICULOPLASTICA, TIMPANOPLASTICA DI TIPO I II III IV, RIMOZIONE CORPO ESTRANEO, STENOSI DEL CONDOTTO URICOLARE, TIMPANOPLASTICA, ASPORTAZIONE NEOFORMAZIONEE PADIGLIONE AURICOLARE.',
+                        'ORECCHIO AVANZATO: TIMPAMOPLASTICA DI TIPO V, PETROSECTOMIA, ASPORTAZIONE DI NEURINOMA DELL’ACUSTICO E ANGOLO PONTECEREBELLARE, IMPIANTO COCLEARE.',
+                        'COLLO: SVUOTAMENTO LATERO CERVICALE, ASPORATAZIONE DI NEOFORMZIONE ESTERNA DELLA CUTE, CERVICOTOMIA, PAROTIDECTOMIA, SCIALECTOMIA, INCISIONE E DRENAGGIO DI ASCESSO-FLEMMONE LATEROCERVICALE, LARINGECTOMIA PARZIALE E TOTALE, RICOSTRUZIONE DEL NERVO FACCIALE, TRACHEOTOMIA.',
+                        'GLOMO: CAROTIDEO, TIMPANICO - TIMPANICOGIUGULARE, LINFANGIOMA DEL COLLO, PARAGANGLIOMA CAROTIDEO. CONTROLLO EMOSTASI TONSILLARE.',
+                        'LEMBO: ASPORTAZIONE DEL LABBRO, DELLA GUANCIA, GLOSSECTOMIA CON RICOSTRUZIONE LEMBO LIBERO PEDUNCOLATO, PETTORALE E DEL MASSICCIO FACCIALE. MANDIBULECTOMIA CON RICOSTRUZIONE OSSO AUTOLOGO.',
+                        'LEMBO CON TECNICA DI LABBE’.',
+                        'OTOSCLEROSI, CORDECTOMIA E EMILARINGECTOMIA SOVRAGLOTTICA CON LASER AD ANIDRIDE CARBONICA.'
+                    ]
+                },
+                {
+                    key: 'Maxillo-Facciale',
+                    questions: [
+                        'CAVO ORALE:asportazione neoformazione lingua, palato duro, osteolitica mascellare, guancia e labbra. Fistola oro-nasoantrale',
+                        'MASCELLA: FRATTURA LE FORT I II III, MASCELLARE CON MEZZI DI SINTESI E CONDILO MANDIBOLARE. GENIOPLASTICA. CORREZIONE PROGENISMO.',
+                        'NASO: RINOSETTOPLASTOCA. RIDUZIONE FRATTURA OSSA NASALI. ANTROSTOMIA MASCELLARE.',
+                        'ORBITA: EXENTERATIO ORBITALE. RIDUZIONE FRATTURA ORBITARIA TRAUMATICA E ATRAUMATICA.',
+                        'COLLO: PAROTIDECTOMIA. CERVICOTOMIA. SVUOTAMENTO LATERO-CERVICALE. TRACHEOTOMIA.',
+                        'LEMBO: RESEZIONE MANDIBOLARE E GLOSSECTOMIA CON RICOSTRUZIONE LEMBO LIBERO E PEDUNCOLATO CON OSSO AUTOLOGO.'
+                    ]
+                }
+
+            ],
+            "Day Surgery Oculistica": [
+                {
+                    key: 'Cataratta',
+                    questions: [
+                        '13.72 - IMPIANTO SECONDARIO DI CRISTALLINO ARTIFICIALE',
+                        '13.41_2 - INTERVENTO DI CATARATTA CON O SENZA IMPIANTO DI LENTE INTRAOCULARE - OCCHIO DX',
+                        '13.72_3 - IMPIANTO SECONDARIO DI CRISTALLINO ARTIFICIALE - OCCHIO SX',
+                        '13.2 - ESTRAZIONE EXTRACAPSULARE DELLA CATARATTA CON TECNICA DI ESTRAZIONE LINEARE',
+                        '13.72 - IMPIANTO SECONDARIO DI CRISTALLINO ARTIFICIALE'
+                    ]
+                },
+                {
+                    key: 'Vitreo retina',
+                    questions: [
+                        '14.72 - ALTRA RIMOZIONE DEL CORPO VITREO',
+                        '14.41 - PIOMBAGGIO SCLERALE CON IMPIANTO',
+                        '14.74 - ALTRA VITRECTOMIA MECCANICA',
+                        '14.75 - INIEZIONE DI SOSTITUTI VITREALI'
+                    ]
+                },
+                {
+                    key: 'Glaucoma',
+                    questions: [
+                        '12.69 - ALTRI INTERVENTI DI FISTOLIZZAZIONE DELLA SCLERA',
+                        '12.89 - ALTRI INTERVENTI SULLA SCLERA',
+                        '12.64 - TRABECULECTOMIA AB EXTERNO',
+                        '12.83 - REVISIONE DI FERITA OPERATORIA DEL SEGMENTO ANTERIORE DELL/OCCHIO NON CLASSIFICATA ALTROVE'
+
+                    ]
+                },
+                {
+                    key: 'Palpebra',
+                    questions: [
+                        '08.24 - ASPORTAZIONE DI LESIONE ESTESA DELLA PALPEBRA, A TUTTO SPESSORE',
+                        '08.23 - ASPORTAZIONE DI LESIONE ESTESA DELLA PALPEBRA NON A TUTTO SPESSORE',
+                        '08.33 - CORREZIONE DI BLEFAROPTOSI CON RESEZIONE O AVANZAMENTO DEL MUSCOLO ELEVATORE O SUA APONEUROSI'
+
+                    ]
+                },
+                {
+                    key: 'Cornea',
+                    questions: [
+                        '11.60 - TRAPIANTO DI CORNEA, NON ALTRIMENTI SPECIFICATO',
+                        '11.64 - ALTRA CHERATOPLASTICA PERFORANTE OMOLOGA',
+                        '11.69 - ALTRO TRAPIANTO DELLA CORNEA',
+                        '11.39 - ALTRA ASPORTAZIONE DELLO PTERIGIUM'
+
+                    ]
+                },
+                {
+                    key: 'Orbita e Congiuntiva',
+                    questions: [
+                        '16.42 - ENUCLEAZIONE DEL BULBO OCULARE CON ALTRO IMPIANTO CONTEMPORANEO',
+                        '15.3 - INTERVENTI SU DUE O PIÙ MUSCOLI EXTRAOCULARI CHE RICHIEDONO DISTACCO TEMPORANEO DAL BULBO, UNO O ENTRAMBI GLI OCCHI',
+                        '15.11 - ARRETRAMENTO DI UN MUSCOLO EXTRAOCULARE',
+                        '10.21_2 - BIOPSIA DELLA CONGIUNTIVA - OCCHIO DX',
+                        '10.32 - DEMOLIZIONE DI LESIONE DELLA CONGIUNTIVA',
+                        '15.3 - INTERVENTI SU DUE O PIÙ MUSCOLI EXTRAOCULARI CHE RICHIEDONO DISTACCO TEMPORANEO DAL BULBO, UNO O ENTRAMBI GLI OCCHI',
+                        '16.22 - ASPIRAZIONE DIAGNOSTICA DELL/ORBITA',
+                        '12.89 - ALTRI INTERVENTI SULLA SCLERA',
+                        '10.32 - DEMOLIZIONE DI LESIONE DELLA CONGIUNTIVA',
+                        '10.21_3 - BIOPSIA DELLA CONGIUNTIVA - OCCHIO SX',
+                        '12.89 - ALTRI INTERVENTI SULLA SCLERA'
+
+                    ]
+                }
+            ]
+
+        };
+
+        const html = document.documentElement;
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+
+        const filterReparto = document.getElementById('filterReparto');
+        const searchText = document.getElementById('searchText');
+        const resultsTableBody = document.querySelector('#resultsTable tbody');
+
+        // Elementi Modale
+        const detailsModal = document.getElementById('detailsModal');
+        const modalNurseName = document.getElementById('modalNurseName');
+        const nurseDetailsSummary = document.getElementById('nurseDetailsSummary');
+        const competenceDetails = document.getElementById('competenceDetails');
+        const closeModalButtons = document.querySelectorAll('#closeModal, #modalCloseBottom');
+
+
+        // Mappatura fissa dei livelli (copiata da index.html)
+        const LEVEL_MAP = {
+            1: '1 - Supervisione Diretta',
+            2: '2 - Supervisione Indiretta',
+            3: '3 - Professionista Autonomo',
+            4: '4 - Autonomo e Formatore'
+        };
+
+        // Funzione per convertire il punteggio (o la media) nel testo del livello (copiata da index.html)
+        function scoreToLevelText(score) {
+            const level = Math.ceil(score);
+            const clampedLevel = Math.min(4, Math.max(1, level));
+            return LEVEL_MAP[clampedLevel] || 'Livello non definito';
+        }
+
+
+        // --- DARK MODE LOGIC ---
+        let currentTheme = localStorage.getItem(THEME_KEY) || 'light';
+        const isDarkMode = () => html.classList.contains('dark');
+
+        function updateChartStyles() {
+            // Seleziona il colore primario del testo basato sul tema
+            const textColor = isDarkMode() ? '#e5e7eb' : '#374151'; // gray-200 vs gray-700
+            const gridColor = isDarkMode() ? '#4b5563' : '#e5e7eb'; // gray-600 vs gray-200
+
+            // Imposta le opzioni globali di Chart.js (per tutti i grafici)
+            Chart.defaults.color = textColor;
+            Chart.defaults.borderColor = gridColor;
+
+            // Aggiorna specifici elementi dei grafici esistenti
+            if (barChart) {
+                barChart.options.scales.y.grid.color = gridColor;
+                barChart.options.scales.y.ticks.color = textColor;
+                barChart.options.scales.x.ticks.color = textColor;
+                barChart.update('none');
+            }
+            if (radarDetailsChart) {
+                radarDetailsChart.options.scales.r.grid.color = gridColor;
+                radarDetailsChart.options.scales.r.pointLabels.color = textColor;
+                radarDetailsChart.update('none');
+            }
+
+            ['pieChartSpecialistiche', 'pieChartGenerali', 'pieChartOculistica'].forEach(id => {
+                if (pieCharts[id]) {
+                    pieCharts[id].options.plugins.legend.labels.color = textColor;
+                    pieCharts[id].update('none');
+                }
+            });
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                html.classList.add('dark');
+                themeIcon.textContent = '🌙';
+                currentTheme = 'dark';
+            } else {
+                html.classList.remove('dark');
+                themeIcon.textContent = '☀️';
+                currentTheme = 'light';
+            }
+            localStorage.setItem(THEME_KEY, currentTheme);
+
+            // PRIMA di inizializzare o aggiornare i dati, aggiorna i colori Chart.js
+            updateChartStyles();
+        }
+
+        themeToggle.addEventListener('click', () => {
+            // Cambia il tema e poi forza un re-render della tabella/grafici
+            applyTheme(isDarkMode() ? 'light' : 'dark');
+            renderTable();
+        });
+
+        // --- FINE DARK MODE LOGIC ---
+
+
+        // Funzione per caricare, filtrare e preparare i dati per i report
+        function loadAll() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return [];
+            const data = JSON.parse(raw);
+            let all = [];
+
+            for (const repartoKey in data) {
+                if (data[repartoKey].infermieri) {
+                    data[repartoKey].infermieri.forEach(nurse => {
+                        // Prende l'ultima valutazione specifica per reparto
+                        const lastEval = nurse.valutazioni ? nurse.valutazioni.find(v => v.reparto === repartoKey) : null;
+
+                        if (lastEval) {
+                            // Calcola il livello medio complessivo (nuovo approccio)
+                            // Calcola la somma delle medie delle sezioni che hanno risposte
+                            const sectionsWithAvg = lastEval.sections.filter(s => (s.answeredCount || 0) > 0);
+                            const totalAverage = sectionsWithAvg.reduce((sum, s) => sum + (s.average || 0), 0);
+                            const answeredGroups = sectionsWithAvg.length;
+                            const overallAverage = answeredGroups > 0 ? totalAverage / answeredGroups : 0;
+
+                            // Ottiene il testo del livello complessivo (arrotondato)
+                            const overallLevelText = scoreToLevelText(overallAverage);
+                            const overallLevelNumber = Math.ceil(overallAverage);
+
+                            // Mappa le selezioni ai dettagli delle domande per la modale
+                            const itemDetails = lastEval.selections.map(selection => {
+                                // Prefer saved questionText (index now stores questionText), fallback to COMPETENCE_DATA by indices
+                                const questionTextFromSave = selection.questionText || selection.question || null;
+                                const sectionNameFromSave = selection.sectionName || selection.section || (typeof selection.sectionIndex !== 'undefined' ? `Sezione ${selection.sectionIndex}` : 'Sezione sconosciuta');
+                                let questionText = questionTextFromSave;
+                                if (!questionText) {
+                                    const sectionData = COMPETENCE_DATA[repartoKey]?.[selection.sectionIndex];
+                                    questionText = sectionData?.questions?.[selection.itemIndex] || `Domanda sconosciuta [${selection.sectionIndex}:${selection.itemIndex}]`;
+                                }
+                                return {
+                                    question: questionText,
+                                    level: scoreToLevelText(selection.value),
+                                    score: selection.value,
+                                    sectionKey: sectionNameFromSave
+                                };
+                            }).filter(d => d.question); // Filtra le domande non mappate se i dati sono corrotti
+
+
+                            // Prepara il report row
+                            const reportRow = {
+                                date: lastEval.data,
+                                nome: nurse.nome,
+                                cognome: nurse.cognome,
+                                matricola: nurse.matricola,
+                                reparto: repartoKey,
+                                valutatore: nurse.valutatore || '-',
+                                // La classe non esiste più: usiamo il numero del livello per il raggruppamento nei grafici
+                                classe: overallLevelNumber,
+                                levelText: overallLevelText,
+                                overall: lastEval.total,
+                                evalDetails: lastEval.sections, // Dettagli per il radar (media sezione)
+                                nurse: nurse, // Dati completi infermiere
+                                allItemDetails: itemDetails // Dettagli per la lista della modale
+                            };
+                            all.push(reportRow);
+                        }
+                    });
+                }
+            }
+            return all;
+        }
+
+        function populateReparti() {
+            const reparti = Array.from(new Set(all.map(x => x.reparto).filter(Boolean)));
+            filterReparto.innerHTML = '<option value=\"\">— Tutti —</option>';
+            reparti.forEach(r => {
+                const o = document.createElement('option'); o.value = r; o.textContent = r; filterReparto.appendChild(o);
+            });
+        }
+
+        // Bar chart: distribution per class
+        function createBarChart() {
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: { labels: ['1 Diretta', '2 Indiretta', '3 Autonomo', '4 Formatore'], datasets: [{ label: 'N. infermieri', data: [0, 0, 0, 0], backgroundColor: ['#ef4444', '#f59e0b', '#10b981', '#6366f1'] }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            precision: 0,
+                            grid: { color: Chart.defaults.borderColor }, // Usa il colore di default
+                            ticks: { color: Chart.defaults.color }
+                        },
+                        x: {
+                            grid: { color: Chart.defaults.borderColor },
+                            ticks: { color: Chart.defaults.color }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateBarChart(filteredList) {
+            const counts = [0, 0, 0, 0];
+            (filteredList || all).forEach(it => {
+                // it.classe è il numero (1, 2, 3 o 4)
+                const idx = Number(it.classe) - 1;
+                if (idx >= 0 && idx < 4) counts[idx]++;
+            });
+            barChart.data.datasets[0].data = counts;
+            barChart.update('none');
+        }
+
+
+        // --- LOGICA GRAFICI A TORTA ---
+        const pieLabels = ['1 Diretta', '2 Indiretta', '3 Autonomo', '4 Formatore'];
+        const pieColors = ['#ef4444', '#f59e0b', '#10b981', '#6366f1'];
+
+        function getPieOptions(title) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: Chart.defaults.color // Usa il colore di default
+                        }
+                    },
+                    title: {
+                        display: false,
+                        text: title
+                    }
+                }
+            };
+        }
+
+        function createPieChart(ctxId, title) {
+            const ctx = document.getElementById(ctxId).getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: pieLabels,
+                    datasets: [{
+                        label: title,
+                        data: [0, 0, 0, 0],
+                        backgroundColor: pieColors,
+                        hoverOffset: 4
+                    }]
+                },
+                options: getPieOptions(title)
+            });
+            pieCharts[ctxId] = chart;
+            return chart;
+        }
+
+        function initPieCharts() {
+            createPieChart('pieChartSpecialistiche', 'Specialistiche');
+            createPieChart('pieChartGenerali', 'Generali');
+            createPieChart('pieChartOculistica', 'DS Oculistica');
+        }
+
+        function groupDataBySpecialization(list) {
+            const distributions = {
+                Specialistiche: [0, 0, 0, 0],
+                Generali: [0, 0, 0, 0],
+                DSOculistica: [0, 0, 0, 0],
+            };
+            list.forEach(item => {
+                let groupKey;
+                // CORREZIONE DEFINITIVA: allineamento al nome salvato "Chirurgie Specialistiche" (PLURALE)
+                if (item.reparto === "Chirurgie Specialistiche") {
+                    groupKey = 'Specialistiche';
+                } else if (item.reparto === "Day Surgery Oculistica") {
+                    groupKey = 'DSOculistica';
+                } else {
+                    // Questa clausola cattura correttamente "Chirurgia Generale" e altri reparti non specificati
+                    groupKey = 'Generali';
+                }
+
+                const classIndex = item.classe - 1;
+                if (distributions[groupKey] && classIndex >= 0 && classIndex < 4) {
+                    distributions[groupKey][classIndex]++;
+                }
+            });
+            return distributions;
+        }
+
+        function updatePieCharts(filteredList) {
+            const distributions = groupDataBySpecialization(filteredList);
+
+            pieCharts['pieChartSpecialistiche'].data.datasets[0].data = distributions.Specialistiche;
+            pieCharts['pieChartSpecialistiche'].update('none');
+
+            pieCharts['pieChartGenerali'].data.datasets[0].data = distributions.Generali;
+            pieCharts['pieChartGenerali'].update('none');
+
+            pieCharts['pieChartOculistica'].data.datasets[0].data = distributions.DSOculistica;
+            pieCharts['pieChartOculistica'].update('none');
+        }
+        // --- FINE LOGICA GRAFICI A TORTA ---
+
+
+        function initCharts() {
+            createBarChart();
+            initPieCharts();
+        }
+
+        // --- LOGICA DETTAGLI MODALE ---
+        function showDetails(item) {
+            // Aggiorna Riepilogo
+            modalNurseName.textContent = `Dettagli Valutazione: ${item.nome} ${item.cognome}`;
+            nurseDetailsSummary.innerHTML = `
+                    <p><strong>Matricola:</strong> ${item.matricola}</p>
+                    <p><strong>Reparto Valutato:</strong> ${item.reparto}</p>
+                    <p><strong>Data Valutazione:</strong> ${item.date}</p>
+                    <p><strong>Valutatore:</strong> ${item.valutatore}</p>
+                    <p class="mt-2 font-bold">Livello Medio Generale: <span class="text-blue-600 dark:text-blue-400">${item.levelText}</span></p>
+                    <p>Punteggio Totale: ${item.overall}</p>
+                `;
+
+            // Aggiorna Dettagli Competenze (Domanda per Domanda)
+            competenceDetails.innerHTML = '';
+            let currentSection = '';
+            item.allItemDetails.forEach(detail => {
+                if (detail.sectionKey !== currentSection) {
+                    currentSection = detail.sectionKey;
+                    competenceDetails.innerHTML += `<h5 class="font-bold mt-4 mb-1 text-blue-600 dark:text-blue-400">${currentSection}</h5>`;
+                }
+                const isAnswered = detail.score > 0;
+                const color = isAnswered ? (detail.score >= 3 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400') : 'text-gray-500 dark:text-gray-400';
+
+                competenceDetails.innerHTML += `
+                        <div class="flex flex-col space-y-0 border-l-2 pl-2 border-gray-200 dark:border-gray-700">
+                            <span class="text-xs text-gray-700 dark:text-gray-300">${detail.question}</span>
+                            <span class="${color} text-sm font-semibold ml-0">${detail.level}</span>
+                        </div>
+                    `;
+            });
+
+            // Aggiorna Grafico Radar (Media per Sezione)
+            if (radarDetailsChart) radarDetailsChart.destroy();
+
+            const labels = item.evalDetails.map(s => s.nome || s.key || s.name || 'Sezione');
+            const dataForRadar = item.evalDetails.map(d => d.average);
+            const maxRadar = 4;
+
+            const radarCtx = document.getElementById('radarDetailsChart').getContext('2d');
+            radarDetailsChart = new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Livello Medio per Area',
+                        data: dataForRadar,
+                        backgroundColor: isDarkMode() ? 'rgba(59,130,246,0.3)' : 'rgba(59,130,246,0.18)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: maxRadar,
+                            angleLines: { color: Chart.defaults.borderColor },
+                            grid: { color: Chart.defaults.borderColor },
+                            pointLabels: { color: Chart.defaults.color }
+                        }
+                    },
+                    plugins: { legend: { labels: { color: Chart.defaults.color } } }
+                }
+            });
+
+            // Mostra Modale
+            detailsModal.classList.remove('hidden');
+            detailsModal.classList.add('flex');
+        }
+
+        // Gestione chiusura Modale
+        closeModalButtons.forEach(btn => btn.addEventListener('click', () => {
+            detailsModal.classList.add('hidden');
+            detailsModal.classList.remove('flex');
+        }));
+        // Chiudi Modale cliccando fuori
+        detailsModal.addEventListener('click', (e) => {
+            if (e.target === detailsModal) {
+                detailsModal.classList.add('hidden');
+                detailsModal.classList.remove('flex');
+            }
+        });
+        // --- FINE LOGICA DETTAGLI MODALE ---
+
+
+        function renderTable() {
+            const tableBody = document.getElementById('resultsTable').querySelector('tbody');
+            const filterRepartoValue = filterReparto.value;
+            const searchTextValue = searchText.value.toLowerCase();
+
+            let filtered = all.filter(item => {
+                // Filtro Reparto
+                if (filterRepartoValue && item.reparto !== filterRepartoValue) return false;
+
+                // Filtro Testo
+                if (searchTextValue &&
+                    !item.nome.toLowerCase().includes(searchTextValue) &&
+                    !item.cognome.toLowerCase().includes(searchTextValue) &&
+                    !item.matricola.toLowerCase().includes(searchTextValue)
+                ) return false;
+
+                return true;
+            });
+
+            tableBody.innerHTML = '';
+            if (filtered.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-gray-500">Nessun dato trovato con i filtri correnti.</td></tr>';
+                // Aggiorna i grafici anche se vuoto
+                updateBarChart(filtered);
+                updatePieCharts(filtered);
+                return;
+            }
+
+            filtered.forEach(item => {
+                const row = tableBody.insertRow();
+                row.className = 'border-b hover:bg-blue-50 dark:hover:bg-gray-700 cursor-pointer transition-colors';
+
+                // Usa la proprietà 'classe' (1, 2, 3 o 4) che ora deriva dalla media
+                const levelColor = item.classe === 4 ? 'bg-green-100 text-green-800' : item.classe === 3 ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800';
+
+                row.innerHTML = `
+                <td class="p-3 text-sm">${item.date}</td>
+                <td class="p-3 text-sm">${item.nome} ${item.cognome}</td>
+                <td class="p-3 text-sm">${item.matricola}</td>
+                <td class="p-3 text-sm">${item.reparto}</td>
+                <td class="p-3 text-sm"><span class="px-2 py-0.5 rounded-full text-xs font-medium ${levelColor}">${item.levelText}</span></td>
+                <td class="p-3 text-sm font-semibold">${item.overall}</td>
+            `;
+
+                // NUOVO LISTENER: Clicca per aprire i dettagli
+                row.addEventListener('click', () => showDetails(item));
+            });
+
+            // Aggiorna i grafici con i dati filtrati
+            updateBarChart(filtered);
+            updatePieCharts(filtered);
+        }
+
+        // --- NUOVA LOGICA ANALISI AI ---
+        function performAIAnalysis() {
+            const totalNurses = all.length;
+            const resultsDiv = document.getElementById('aiAnalysisResults');
+
+            if (totalNurses === 0) {
+                resultsDiv.innerHTML = '<p class="text-red-500 font-semibold">Nessun dato di valutazione trovato per eseguire l\'analisi.</p>';
+                return;
+            }
+
+            // 1. Count distribution
+            const counts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+            all.forEach(item => {
+                const classe = Number(item.classe);
+                if (classe >= 1 && classe <= 4) {
+                    counts[classe]++;
+                }
+            });
+
+            const percent = {
+                1: ((counts[1] / totalNurses) * 100).toFixed(1),
+                2: ((counts[2] / totalNurses) * 100).toFixed(1),
+                3: ((counts[3] / totalNurses) * 100).toFixed(1),
+                4: ((counts[4] / totalNurses) * 100).toFixed(1),
+            };
+
+            let analysisText = `
+                        <h4 class="font-bold text-base mb-2">Risultato Analisi Qualitativa AI (su ${totalNurses} infermieri):</h4>
+                        <p class="mb-3">La distribuzione attuale delle competenze (Livello Medio) è la seguente:</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li class="${counts[1] > 0 ? 'font-medium' : ''}">Classe 1 (Supervisione Diretta): ${counts[1]} infermieri (${percent[1]}%)</li>
+                            <li class="${counts[2] > 0 ? 'font-medium' : ''}">Classe 2 (Supervisione Indiretta): ${counts[2]} infermieri (${percent[2]}%)</li>
+                            <li class="${counts[3] > 0 ? 'font-medium' : ''}">Classe 3 (Autonomo): ${counts[3]} infermieri (${percent[3]}%)</li>
+                            <li class="${counts[4] > 0 ? 'font-medium' : ''}">Classe 4 (Formatore): ${counts[4]} infermieri (${percent[4]}%)</li>
+                        </ul>
+                        <h5 class="font-bold mt-4 mb-2">Azioni di Miglioramento Raccomandate:</h5>
+                        <ul class="list-disc list-inside space-y-2">
+                    `;
+
+            // 2. Determine actions based on highest/critical concentration
+            const isHighLevel = counts[3] + counts[4] > totalNurses / 2; // Più della metà sono Autonomi o Formatori
+            const isLowLevelCritical = counts[1] > counts[2] && counts[1] > counts[3] && counts[1] > counts[4]; // Classe 1 è la più numerosa
+
+            if (isLowLevelCritical) {
+                analysisText += `
+                            <li class="font-semibold text-red-500">Focus Critico: Alto numero di infermieri in **Classe 1**.</li>
+                            <li>**KPI: Tasso di Promozione.** Implementare un piano di **Mentorship Intensiva (1:1)** accoppiando Classe 1 e Classe 4, con l'obiettivo di raggiungere il Livello 2 entro 6 mesi.</li>
+                            <li>**KPI: Tempo Medio alla Padronanza.** Organizzare **sessioni pratiche simulate** dedicate (simulazione ad alta fedeltà) per ridurre il tempo necessario a raggiungere l'autonomia per le procedure critiche.</li>
+                            <li>**KPI: Tasso di Incidenti.** Rivedere e semplificare i **Protocolli Operativi Standard (SOP)** per ridurre l'errore umano nella fase di apprendimento diretto.</li>
+                        `;
+            } else if (isHighLevel) {
+                analysisText += `
+                            <li class="font-semibold text-blue-600 dark:text-blue-400">Focus Avanzato: Forte presenza di Autonomia (**Classi 3 e 4**).</li>
+                            <li>**KPI: Ore di Mentorship Erogate.** Formalizzare un **Programma di Tutoring Interno strutturato**, trasformando gli infermieri di Classe 3 e 4 in formatori ufficiali per i colleghi junior (Classi 1 e 2).</li>
+                            <li>**KPI: Numero di Procedure Sviluppate.** Assegnare ai professionisti di Classe 3 e 4 la **Revisione e l'Aggiornamento dei Protocolli** per mantenere l'eccellenza operativa.</li>
+                            <li>**KPI: Indice di Transizione al Mentoring (ITM).** Investire in **Formazione Specialistica Esterna** (Master, Corsi Avanzati) per i professionisti di Classe 4, elevandoli a esperti di riferimento aziendale.</li>
+                        `;
+            } else if (counts[2] > 0) {
+                analysisText += `
+                            <li class="font-semibold text-yellow-500">Focus Intermedio: Maggiore concentrazione in **Classe 2**.</li>
+                            <li>**KPI: Tasso di Promozione.** Promuovere l'**Autonomia Vigilata**: Assegnare responsabilità complete sulla gestione di un'intera procedura sotto supervisione a distanza per favorire il passaggio a Classe 3.</li>
+                            <li>**KPI: Discrepanza Max-Min Competenza.** Programmare **Corsi di Approfondimento Specifico** (es. gestione delle complicanze) per elevare il livello di competenza oltre la base.</li>
+                            <li>**KPI: Indice di Copertura.** Incoraggiare la **Partecipazione a Gruppi di Lavoro** o audit interni per sviluppare il senso critico e la capacità decisionale indipendente.</li>
+                        `;
+            }
+            else {
+                analysisText += `
+                            <li>La distribuzione è equilibrata o i dati sono insufficienti per un'analisi mirata. L'azione prioritaria è **identificare le aree di competenza con il punteggio medio più basso** (consultare i dettagli della valutazione) e concentrare la formazione su di esse.</li>
+                            <li>Mantenere un ciclo di valutazione continuo per monitorare la progressione individuale.</li>
+                        `;
+            }
+
+            analysisText += '</ul>';
+            resultsDiv.innerHTML = analysisText;
+        }
+        // --- FINE NUOVA LOGICA ANALISI AI ---
+        
+
+
+        // exports (Invariate)
+        document.getElementById('exportJSON').addEventListener('click', () => {
+            const blob = new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'valutazioni_export.json'; a.click(); URL.revokeObjectURL(url);
+        });
+        document.getElementById('exportCSV').addEventListener('click', () => {
+            if (!all.length) { alert('Nessun dato'); return; }
+            const keys = ['date', 'nome', 'cognome', 'matricola', 'reparto', 'valutatore', 'levelText', 'overall'];
+            const rows = [keys.join(',')];
+            all.forEach(r => {
+                rows.push(keys.map(k => `"${(r[k] || '').toString().replace(/"/g, '""')}"`).join(','));
+            });
+            const blob = new Blob([rows.join('\n')], { type: 'text/csv' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'valutazioni_export.csv'; a.click(); URL.revokeObjectURL(url);
+        });
+
+        // events (Corretti: rimosso filterClasse)
+        filterReparto.addEventListener('change', renderTable);
+        searchText.addEventListener('input', renderTable);
+
+        // EVENTO PER NUOVA FUNZIONE AI
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btnAnalyze').addEventListener('click', performAIAnalysis);
+        });
+
+        // init
+        function init() {
+            // 1. Applica il tema salvato e imposta i colori Chart.js globali
+            applyTheme(currentTheme);
+
+            // 2. Crea le istanze dei grafici (ora con i colori del tema corretti)
+            initCharts();
+
+            // 3. Carica i dati
+            all = loadAll();
+            populateReparti();
+
+            // 4. Popola la tabella e aggiorna i grafici con i dati
+            renderTable();
+        }
+        init();</script>
+</body>
+</html>
