@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="it" class="font-inter">
 <head>
     <meta charset="utf-8" />
@@ -160,35 +160,7 @@
         </div>
     </div>
 
-    <script>// === FUNZIONI BACKEND FLASK / SQLITE ===
-        async function salvaInfermieriNelDB(infermiere) {
-            try {
-                const res = await fetch("/api/inserisci_infermiere", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(infermiere)
-                });
-                console.log("Infermiere salvato su DB:", await res.json());
-            } catch (e) {
-                console.error("Errore salvataggio infermiere su DB:", e);
-            }
-        }
-
-        async function salvaValutazioneNelDB(valutazione) {
-            try {
-                const res = await fetch("/api/inserisci_valutazione", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(valutazione)
-                });
-                console.log("Valutazione salvata su DB:", await res.json());
-            } catch (e) {
-                console.error("Errore salvataggio valutazione su DB:", e);
-            }
-        }
-
-
-        // ---------- Utility & Data ----------
+    <script>// ---------- Utility & Data ----------
         function uid() {
             return 'n_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
         }
@@ -852,27 +824,7 @@
             const nurse = data[currentReparto].infermieri.find(x => x.id === selectedNurseId); const blob = new Blob([JSON.stringify({ nurse, reparto: currentReparto }, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${nurse.nome}_${nurse.cognome}_valutazione.json`; a.click(); URL.revokeObjectURL(url);
         });
 
-        document.getElementById('btnClearAll').addEventListener('click', () => {
-            if (!confirm('Svuotare solo le valutazioni (gli infermieri resteranno)?')) return;
-
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) return;
-            const allData = JSON.parse(raw);
-
-            // Cancella solo le valutazioni e lascia gli infermieri intatti
-            for (const reparto in allData) {
-                if (allData[reparto] && Array.isArray(allData[reparto].infermieri)) {
-                    allData[reparto].infermieri.forEach(n => {
-                        n.valutazioni = [];
-                        n.ultimaValutazione = null;
-                    });
-                }
-            }
-
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
-            alert('Valutazioni cancellate. Elenco infermieri conservato.');
-            location.reload();
-        });
+        document.getElementById('btnClearAll').addEventListener('click', () => { if (!confirm('Svuotare tutti i dati locali?')) return; localStorage.removeItem(STORAGE_KEY); location.reload(); });
 
         // Calcolo punteggi per sezione (già ottimizzata)
         // Funzione per calcolare i punteggi per sezione e item
@@ -939,126 +891,47 @@
         // Aggiornamento UI punteggi e livelli (già ottimizzata)
         // Funzione per aggiornare il riepilogo
         function updateScores() {
-            // La funzione computeSectionScores() è fondamentale: ci fornisce i dati grezzi.
-            // L'array 'sectionDetails' è usato per il grafico e i totali.
-            const { scores, sectionDetails, itemDetails, sections: sectionAggregates, selections: selectionDetails } = computeSectionScores();
-
-            // Calcolo del punteggio totale (media delle medie per sezione)
+            const { scores, sectionDetails, itemDetails } = computeSectionScores();
             const total = scores.reduce((a, b) => a + b, 0);
-            const overallAverage = scores.length > 0 ? total / scores.length : 0;
-
             const totalMaxScore = getCurrentMaxScore();
 
-            // Aggiornamento UI
-            summaryScore.textContent = `Punteggio totale: ${overallAverage.toFixed(2)} (Max teorico: ${totalMaxScore})`;
+            summaryScore.textContent = `Punteggio totale: ${total} (Max: ${totalMaxScore})`;
 
-            // Costruisce il riepilogo dettagliato per ogni item attivo
+            // Costruisce il riepilogo dettagliato per ogni item
             let summaryHtml = '';
 
-            itemDetails.forEach((section, sIdx) => {
-                const toggleId = `sec_${currentReparto.replace(/\s/g, '_')}_${sIdx}_toggle`;
-                const isSectionActive = document.getElementById(toggleId)?.checked || false;
-
-                // Mostra solo le competenze attive e con almeno una risposta
-                const answeredItems = section.questions.filter(item => item.score > 0);
-                if (!isSectionActive || answeredItems.length === 0) return;
-
+            itemDetails.forEach(section => {
+                // Mostra il titolo del gruppo/competenza
                 summaryHtml += `<h4 class='font-semibold mt-4 mb-1 text-blue-700 dark:text-blue-300'>${section.key}</h4>`;
 
-                answeredItems.forEach(item => {
-                    const color = item.score >= 3
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-blue-600 dark:text-blue-400';
+                // Dettaglio per singola domanda
+                section.questions.forEach(item => {
+                    const isAnswered = item.score > 0;
+                    const color = isAnswered ? (item.score >= 3 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400') : 'text-gray-500 dark:text-gray-400';
 
-                    summaryHtml += `
-                <div class="flex flex-col space-y-0">
-                    <span class="text-xs text-gray-700 dark:text-gray-300">${item.question}</span>
-                    <span class="${color} text-sm font-semibold ml-2">${item.level}</span>
-                </div>`;
+                    summaryHtml += `<div class="flex flex-col space-y-0">
+                                                <span class="text-xs text-gray-700 dark:text-gray-300">${item.question}</span>
+                                                <span class="${color} text-sm font-semibold ml-2">${item.level}</span>
+                                            </div>`;
                 });
             });
 
-            // ====================================================================
-            // 🛑 ASSEGNAZIONE DELLE VARIABILI GLOBALI (NUOVO FIX PER INPUT)
-            // ====================================================================
+            // Aggiorna l'elemento summaryLevel con la nuova struttura
+            summaryLevel.innerHTML = `<h4 class='font-semibold mb-2'>Livelli di Riferimento Dettagliati:</h4><div class='space-y-3 text-sm'>${summaryHtml}</div>`;
 
-            // 1. Rileva i dati dell'Infermiere dagli INPUT
-            const inputMatricola = document.getElementById('inputMatricola');
-            const inputNome = document.getElementById('inputNome');
-            const inputCognome = document.getElementById('inputCognome');
-            const inputValutatore = document.getElementById('inputValutatore'); // Già usato per il valutatore
-
-            const matricolaValue = inputMatricola?.value || '';
-            const nomeValue = inputNome?.value || '';
-            const cognomeValue = inputCognome?.value || '';
-            const valutatoreValue = inputValutatore?.value || '-';
-
-            let nurseData = null;
-
-            // La validazione ora si basa sulla presenza della Matricola (l'ID univoco)
-            if (matricolaValue.trim() !== '') {
-                // Se la matricola è presente, creiamo l'oggetto nurseData
-                nurseData = {
-                    id: matricolaValue, // La Matricola è l'ID
-                    nome: nomeValue || "N/D",
-                    cognome: cognomeValue || "N/D",
-                    matricola: matricolaValue,
-                    valutatore: valutatoreValue
-                };
-            }
-
-            // 🛑 DEBUG: Controlla ora cosa è stato letto dagli input
-            console.log("DEBUG INFERMIERE: Dati letti dagli input. Matricola:", matricolaValue, "Infermiere letto:", !!nurseData);
-
-            // 2. Assegna i dati alle variabili globali (window.*) che il salvataggio legge
-            window.currentNurse = nurseData;
-            window.totalScore = overallAverage; // Assegna il punteggio
-            window.sections = sectionDetails;
-
-            // Costruisce l'array 'selections' richiesto dal report.html
-            window.selections = itemDetails.flatMap(section =>
-                section.questions.filter(item => item.score > 0).map(item => ({
-                    value: item.score,
-                    sectionIndex: section.sectionIndex,
-                    itemIndex: item.itemIndex
-                }))
-            );
-
-            console.log("✅ Dati globali aggiornati. Punteggio:", window.totalScore.toFixed(2));
-
-            // ====================================================================
-            // 🎨 AGGIORNAMENTO UI (SPOSTATO ALL'INTERNO DELLA FUNZIONE)
-            // ====================================================================
-
-            summaryLevel.innerHTML =
-                summaryHtml.trim() === ''
-                    ? `<p class='text-sm text-gray-500 italic'>Nessuna competenza valutata.</p>`
-                    : `<h4 class='font-semibold mb-2'>Livelli di Riferimento Dettagliati:</h4><div class='space-y-3 text-sm'>${summaryHtml}</div>`;
-
-            // Aggiorna il grafico radar
+            // Aggiorna il grafico radar (rimane invariato, usa la media del gruppo)
             const labels = getCurrentCompetences().map(s => s.key);
 
             if (radarChart) radarChart.destroy();
 
+            // Per il radar, usiamo la media del punteggio per avere un grafico normalizzato (Max 4)
             const dataForRadar = sectionDetails.map(d => d.average);
             const maxRadar = 4;
 
             radarChart = new Chart(radarCtx, {
                 type: 'radar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Livello Medio',
-                        data: dataForRadar,
-                        backgroundColor: 'rgba(59,130,246,0.18)',
-                        borderColor: '#3b82f6',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: { r: { beginAtZero: true, max: maxRadar } }
-                }
+                data: { labels: labels, datasets: [{ label: 'Livello Medio', data: dataForRadar, backgroundColor: 'rgba(59,130,246,0.18)', borderColor: '#3b82f6', borderWidth: 1 }] },
+                options: { responsive: true, scales: { r: { beginAtZero: true, max: maxRadar } } }
             });
         }
 
@@ -1164,244 +1037,113 @@
         document.getElementById('btnImport').addEventListener('click', () => {
             window.open('survey_vbhc_infermieri_sala_operatoria_html.html', '_blank');
         });</script>
+   <!-- ✅ Firebase compatibile (nessun import/export, nessun errore) -->
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics-compat.js"></script>
 
-    <script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
+<script>
+// 🔧 Configurazione Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyBGk5B_YtjiEwSGk-4haXpdip4OME3vhcU",
+    authDomain: "competenze-34393.firebaseapp.com",
+    projectId: "competenze-34393",
+    storageBucket: "competenze-34393.appspot.com",
+    messagingSenderId: "7566486414",
+    appId: "1:7566486414:web:d4aaed0c13b270a24552df",
+    measurementId: "G-PYYZ9M7XH7" // 🔹 aggiornato con ID reale
+};
 
-        // 🛑 ASSICURATI DI INSERIRE QUI I TUOI DATI DI CONFIGURAZIONE FIREBASE REALI
-        const firebaseConfig = {
-            apiKey: "AIzaSyDuDjV6nU5YuNfkivTKJ1kf6NwmkGRIi34",
-            authDomain: "clinicalcompetenceor.firebaseapp.com",
-            projectId: "clinicalcompetenceor",
-            storageBucket: "clinicalcompetenceor.firebasestorage.app",
-            messagingSenderId: "91172915109",
-            appId: "1:91172915109:web:f548cb1f92fb5ae08f8a4c",
-            measurementId: "G-V547BJD3VC"
+// 🔥 Inizializza Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const analytics = firebase.analytics();
+console.log("✅ Firebase connesso correttamente");
+
+// --- Utility Firestore compatibili ---
+async function pullReparto(reparto) {
+    try {
+        const ref = db.collection("datasets").doc(reparto);
+        const snap = await ref.get();
+        return snap.exists ? snap.data() : null;
+    } catch (e) {
+        console.warn("⚠️ Errore durante pullReparto:", e);
+        return null;
+    }
+}
+
+async function pushReparto(reparto, payload) {
+    try {
+        const ref = db.collection("datasets").doc(reparto);
+        const toSave = {
+            infermieri: payload?.infermieri ?? [],
+            _updatedAt: new Date().toISOString()
         };
+        await ref.set(toSave, { merge: true });
+        console.log(`☁️ Dati sincronizzati su Firestore per ${reparto}`);
+    } catch (e) {
+        console.warn("⚠️ Errore durante pushReparto:", e);
+    }
+}
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const analytics = getAnalytics(app);
-
-        // =========================================================================
-        // 🛑 FUNZIONE FONDAMENTALE DI CALCOLO E ASSEGNAZIONE DATI (FINAL FIX)
-        // =========================================================================
-
-        function aggiornaDatiECalcolaPunteggio() {
-            let totalScore = 0;
-            let totalCount = 0;
-            const datiDelleSezioni = [];
-            const datiDelleSelezioni = [];
-
-            // -------------------------------------------------------------------------
-            // 1. RACCOLTA DATI DAI CAMPI HTML/GLOBALI
-            // -------------------------------------------------------------------------
-
-            const nome = document.getElementById('inputNome')?.value.trim() || "N/D";
-            const cognome = document.getElementById('inputCognome')?.value.trim() || "N/D";
-            const matricola = document.getElementById('inputMatricola')?.value.trim() || null;
-            const valutatore = document.getElementById('inputValutatore')?.value.trim() || "-";
-            const esperienza = parseFloat(document.getElementById('inputEsperienza')?.value) || 0;
-            const ruolo = document.getElementById('inputRuolo')?.value.trim() || "N/D";
-            const reparto = document.getElementById('inputReparto')?.value.trim() || document.getElementById("currentReparto")?.textContent || "N/D";
-
-            let infermiereDati = null;
-
-            if (matricola && matricola !== 'N/D') {
-                infermiereDati = {
-                    id: matricola,
-                    nome: nome,
-                    cognome: cognome,
-                    matricola: matricola,
-                    esperienza: esperienza,
-                    ruolo: ruolo,
-                    reparto: reparto,
-                    valutatore: valutatore
-                };
-            } else {
-                const infermiereSelect = document.getElementById('selectInfermiere');
-                if (infermiereSelect?.value && infermiereSelect.value !== 'null' && infermiereSelect.value !== '') {
-                    const selectedOption = infermiereSelect.options[infermiereSelect.selectedIndex];
-
-                    infermiereDati = {
-                        id: infermiereSelect.value,
-                        nome: selectedOption?.text.split(' ')[0] || "N/D",
-                        cognome: selectedOption?.text.split(' ').slice(1).join(' ') || "N/D",
-                        matricola: infermiereSelect.value,
-                        esperienza: esperienza,
-                        ruolo: ruolo,
-                        reparto: reparto,
-                        valutatore: valutatore
-                    };
+// 🌐 Bridge globale per sincronizzazione cloud ↔︎ locale
+window.firebaseSync = {
+    async pullAllIntoLocal(ALL_REPARTI, data, saveData, reRender) {
+        try {
+            let changed = false;
+            for (const reparto of ALL_REPARTI) {
+                const cloud = await pullReparto(reparto);
+                if (cloud && Array.isArray(cloud.infermieri)) {
+                    const local = data[reparto] ?? { infermieri: [] };
+                    const byId = new Map(local.infermieri.map(n => [n.id, n]));
+                    cloud.infermieri.forEach(n => byId.set(n.id, n));
+                    const merged = Array.from(byId.values());
+                    data[reparto] = data[reparto] || {};
+                    data[reparto].infermieri = merged;
+                    changed = true;
                 }
             }
-
-            console.log(`[DEBUG Matr Check] Valore letto da inputMatricola (trim): "${matricola}"`);
-
-
-            // -------------------------------------------------------------------------
-            // 2. LOGICA DI CALCOLO: Aggregazione Punteggi e Dettagli
-            // -------------------------------------------------------------------------
-
-            const toggles = document.querySelectorAll('.competence-toggle:checked, input[type="radio"]:checked');
-            const sezioniMappa = new Map();
-
-            toggles.forEach(toggle => {
-                const score = parseFloat(toggle.value) || parseFloat(toggle.dataset.score) || 1;
-                const sectionName = toggle.dataset.section || 'Generica';
-                const sectionIndex = parseInt(toggle.dataset.sectionIndex);
-                const itemIndex = parseInt(toggle.dataset.itemIndex);
-
-                // 🔥 NUOVA LOGICA: Recupera il testo della domanda dal DOM
-                const itemContainer = toggle.closest('[data-section-index]');
-                let questionText = `Domanda sconosciuta [${sectionIndex}:${itemIndex}]`;
-
-                if (itemContainer) {
-                    // Cerca l'elemento che contiene il testo della domanda, assumendo che sia un <h4>, <p> o un elemento con classe .question-text/label all'interno del contenitore.
-                    const textElement = itemContainer.querySelector('h4, p, .question-text, .question-label');
-                    if (textElement) {
-                        questionText = textElement.textContent.trim();
-                    } else {
-                        // Fallback se non è trovata una classe specifica: prende il testo del primo figlio del contenitore.
-                        const firstChild = itemContainer.children[0];
-                        if (firstChild) {
-                            questionText = firstChild.textContent.trim();
-                        }
-                    }
-                }
-
-
-                totalScore += score;
-                totalCount++;
-
-                // 2a. Crea l'array 'selections' (ORA INCLUSO IL TESTO DELLA DOMANDA)
-                datiDelleSelezioni.push({
-                    value: score,
-                    sectionIndex: sectionIndex,
-                    itemIndex: itemIndex,
-                    sectionName: sectionName,
-                    questionText: questionText, // 🔥🔥 ADESSO IL TESTO VIENE SALVATO SU FIREBASE!
-                });
-
-                // 2b. Aggrega i dati per sezione
-                if (!sezioniMappa.has(sectionName)) {
-                    sezioniMappa.set(sectionName, { nome: sectionName, total: 0, count: 0, answeredCount: 0, sectionIndex: sectionIndex });
-                }
-                sezioniMappa.get(sectionName).total += score;
-                sezioniMappa.get(sectionName).count++;
-                sezioniMappa.get(sectionName).answeredCount++;
-            });
-
-            const punteggioFinale = totalCount > 0 ? totalScore / totalCount : 0;
-
-            sezioniMappa.forEach(data => {
-                datiDelleSezioni.push({
-                    nome: data.nome,
-                    average: data.total / data.answeredCount,
-                    total: data.total,
-                    answeredCount: data.answeredCount,
-                    sectionIndex: data.sectionIndex
-                });
-            });
-
-            // -------------------------------------------------------------------------
-            // 4. 🛑 ASSEGNAZIONE A WINDOW
-            // -------------------------------------------------------------------------
-
-            window.currentNurse = infermiereDati;
-            window.totalScore = punteggioFinale;
-            window.sections = datiDelleSezioni;
-            window.selections = datiDelleSelezioni;
-
-            console.log(`✅ Calcolo completato. Punteggio: ${punteggioFinale.toFixed(2)}. Infermiere pronto: ${!!infermiereDati}`);
+            if (changed) {
+                saveData();
+                reRender?.();
+            }
+        } catch (e) {
+            console.warn("⚠️ Pull cloud fallita: continuo solo locale.", e);
         }
+    },
 
-        // =========================================================================
-        // 🛑 REGISTRAZIONE LISTENER
-        // =========================================================================
+    async pushCurrent(currentReparto, data) {
+        try {
+            await pushReparto(currentReparto, data[currentReparto]);
+        } catch (e) {
+            console.warn("⚠️ Push cloud fallita, ok: resta locale.", e);
+        }
+    },
 
-        window.addEventListener("DOMContentLoaded", () => {
-            aggiornaDatiECalcolaPunteggio();
-
-            document.getElementById('selectInfermiere')?.addEventListener('change', aggiornaDatiECalcolaPunteggio);
-            document.getElementById('inputValutatore')?.addEventListener('input', aggiornaDatiECalcolaPunteggio);
-            document.getElementById('inputMatricola')?.addEventListener('input', aggiornaDatiECalcolaPunteggio);
-            document.getElementById('inputNome')?.addEventListener('input', aggiornaDatiECalcolaPunteggio);
-            document.getElementById('inputCognome')?.addEventListener('input', aggiornaDatiECalcolaPunteggio);
-            document.getElementById('inputEsperienza')?.addEventListener('input', aggiornaDatiECalcolaPunteggio);
-            document.getElementById('inputRuolo')?.addEventListener('input', aggiornaDatiECalcolaPunteggio);
-            document.getElementById('inputReparto')?.addEventListener('input', aggiornaDatiECalcolaPunteggio);
-
-
-            document.querySelectorAll('.competence-toggle, input[type="radio"]').forEach(element => {
-                element.addEventListener('change', aggiornaDatiECalcolaPunteggio);
-            });
-        });
-
-        // =========================================================================
-        // 🔹 LISTENER DI SALVATAGGIO SU FIREBASE
-        // =========================================================================
-
-        document.getElementById("btnSaveEval").addEventListener("click", async () => {
-            aggiornaDatiECalcolaPunteggio();
-
-            const infermiereData = window.currentNurse || null;
-
-            const infermiereObj = infermiereData ? {
-                id: infermiereData.id || "N/D",
-                nome: infermiereData.nome || "N/D",
-                cognome: infermiereData.cognome || "N/D",
-                matricola: infermiereData.matricola || "N/D",
-                esperienza: infermiereData.esperienza || 0,
-                ruolo: infermiereData.ruolo || "N/D",
-                valutatore: infermiereData.valutatore || document.getElementById('inputValutatore')?.value || "-",
-            } : null;
-
-            const valutazione = {
-                data: new Date().toISOString(),
-                reparto: infermiereData?.reparto || document.getElementById("currentReparto")?.textContent || "N/D",
-                infermiere: infermiereObj,
-                total: window.totalScore || 0,
-                sections: window.sections || [],
-                selections: window.selections || [], // Contiene ora anche questionText
-            };
-
-            const infermiereIDValido = valutazione.infermiere && valutazione.infermiere.id && valutazione.infermiere.id.trim() !== '' && valutazione.infermiere.id !== 'N/D';
-            const punteggioValido = valutazione.total > 0;
-
-            // 🧪 LOG DI DEBUG FINALE 🧪
-            console.log("DEBUG VALIDAZIONE FINALE:");
-            console.log("  ID Infermiere (valutazione.infermiere?.id):", valutazione.infermiere?.id);
-            console.log("  Punteggio Totale (valutazione.total):", valutazione.total);
-            console.log("  Risultato ID Valido:", infermiereIDValido);
-            console.log("  Risultato Punteggio Valido:", punteggioValido);
-
-
-            if (!infermiereIDValido) {
-                console.error("❌ Fallimento Validazione: ID Infermiere mancante o non valido.");
-                alert("❌ ERRORE: Assicurati di aver compilato la Matricola o selezionato un Infermiere valido.");
-                return;
-            }
-
-            if (!punteggioValido) {
-                console.error("❌ Fallimento Validazione: Punteggio totale è zero.");
-                alert("❌ ERRORE: Assicurati di aver completato la valutazione (seleziona almeno una risposta con punteggio > 0) prima di salvare.");
-                return;
-            }
-
-
-            // 🛑 3. Salvataggio su Firebase (solo se la validazione è superata)
+    async pushAll(ALL_REPARTI, data) {
+        for (const r of ALL_REPARTI) {
             try {
-                const valutazionePulita = JSON.parse(JSON.stringify(valutazione));
-                await addDoc(collection(db, "valutazioni"), valutazionePulita);
-                alert("✅ Valutazione salvata su Firebase! I livelli competenza dettagliati sono stati inclusi.");
+                await pushReparto(r, data[r]);
             } catch (e) {
-                console.error("Errore salvataggio Firebase:", e);
-                alert("❌ Errore durante il salvataggio: " + e.message);
+                console.warn("⚠️ Push fallita per", r);
             }
-        });</script>
+        }
+    }
+};
+
+// ✅ Sincronizzazione automatica dopo ogni "Salva valutazione"
+document.getElementById("btnSaveEval").addEventListener("click", async () => {
+    setTimeout(async () => {
+        try {
+            console.log("☁️ Sincronizzo su Firestore:", currentReparto);
+            await window.firebaseSync.pushCurrent(currentReparto, data);
+            console.log("✅ Dati sincronizzati su Firestore per", currentReparto);
+        } catch (e) {
+            console.warn("⚠️ Errore durante la sincronizzazione:", e);
+        }
+    }, 1000);
+});
+</script>
 
 </body>
 </html>

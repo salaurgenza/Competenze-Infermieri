@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="it">
 <head>
     <meta charset="utf-8" />
@@ -90,9 +90,7 @@
         <section class="bg-white dark:bg-gray-800 p-4 rounded shadow dark:shadow-lg transition-colors duration-300">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="font-semibold text-blue-700 dark:text-blue-300">🤖 Analisi Qualitativa e Azioni di Miglioramento</h3>
-                <button id="btnAnalyze" onclick="performAIAnalysis()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded transition-colors">
-                    Esegui Analisi AI
-                </button>
+                <button id="btnAnalyze" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded transition-colors">Esegui Analisi AI</button>
             </div>
             <div id="aiAnalysisResults" class="mt-4 p-4 border rounded border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 min-h-[100px] text-sm">
                 Clicca su "Esegui Analisi AI" per generare un report sulla distribuzione delle competenze e le azioni raccomandate.
@@ -158,9 +156,36 @@
         </div>
     </div>
 
+    <!-- ✅ Firebase compatibile -->
+    
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics-compat.js"></script>
 
-    <script>const STORAGE_KEY = 'valutazioni_dashboard_v2';
-        const THEME_KEY = 'valutazioni_theme';
+<!-- 🔧 Configurazione e inizializzazione Firebase -->
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBGk5B_YtjiEwSGk-4haXpdip4OME3vhcU",
+    authDomain: "competenze-34393.firebaseapp.com",
+    projectId: "competenze-34393",
+    storageBucket: "competenze-34393.appspot.com",
+    messagingSenderId: "7566486414",
+    appId: "1:7566486414:web:d4aaed0c13b270a24552df",
+    measurementId: "G-PYYZ9M7XH7"
+  };
+
+  // 🔥 Inizializza Firebase compatibile
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const analytics = firebase.analytics();
+
+  console.log("✅ Firebase connesso correttamente (report)");
+</script>
+
+<!-- 🧠 Tutto il resto del codice principale (inizia qui) -->
+<script>
+  const STORAGE_KEY = 'valutazioni_dashboard_v2';
+  const THEME_KEY = 'valutazioni_theme';
 
         let all = [];
         let barChart;
@@ -272,6 +297,8 @@
                     ]
                 }
             ],
+
+
             "Chirurgie Specialistiche": [
                 {
                     key: 'Ch. Senologica', questions: [
@@ -526,72 +553,74 @@
         // --- FINE DARK MODE LOGIC ---
 
 
-        // Funzione per preparare i dati per i report dall'output grezzo di Firebase
-        function prepareReportData(firebaseData) {
-            let elaboratedData = [];
+        // ======================================================
+// 🔄 Carica i dati da Firestore invece che da LocalStorage
+// ======================================================
+async function loadAll() {
+    let all = [];
 
-            // 'firebaseData' è un array di oggetti valutazione (salvati come documenti in Firebase)
-            firebaseData.forEach(lastEval => {
+    try {
+        // 🔹 Recupera tutti i documenti dalla collezione "datasets"
+        const snapshot = await db.collection("datasets").get();
 
-                // 🚨 CONTROLLO E FALLBACK: Non scartiamo il dato, ma usiamo valori sicuri se manca qualcosa
-                if (!lastEval || !lastEval.infermiere || !lastEval.reparto || !lastEval.sections) {
-                    console.warn("⚠️ Dato di valutazione incompleto trovato e incluso con fallback:", lastEval);
-                }
+        snapshot.forEach(doc => {
+            const repartoKey = doc.id;
+            const data = doc.data();
 
-                // --- ASSEGNAZIONE DATI CON FALLBACK ---
-                // Usiamo i dati reali, o valori di fallback se mancanti
-                const nurse = lastEval.infermiere || { nome: 'N/A', cognome: 'N/A', matricola: 'N/A' };
-                const repartoKey = lastEval.reparto || 'N/A';
+            if (data.infermieri) {
+                data.infermieri.forEach(nurse => {
+                    const lastEval = nurse.valutazioni
+                        ? nurse.valutazioni.find(v => v.reparto === repartoKey)
+                        : null;
 
-                // Usiamo solo le sezioni che hanno risposte (necessario per il calcolo della media)
-                const sectionsWithAvg = (lastEval.sections || []).filter(s => (s.answeredCount || 0) > 0);
+                    if (lastEval) {
+                        // Calcola la media complessiva
+                        const sectionsWithAvg = lastEval.sections.filter(s => (s.answeredCount || 0) > 0);
+                        const totalAverage = sectionsWithAvg.reduce((sum, s) => sum + (s.average || 0), 0);
+                        const overallAverage = sectionsWithAvg.length > 0 ? totalAverage / sectionsWithAvg.length : 0;
 
-                // --- CALCOLO DELLA MEDIA (USANDO SOLO SEZIONI CON DATI) ---
-                const totalAverage = sectionsWithAvg.reduce((sum, s) => sum + (s.average || 0), 0);
-                const answeredGroups = sectionsWithAvg.length;
-                const overallAverage = answeredGroups > 0 ? totalAverage / answeredGroups : 0;
+                        const overallLevelText = scoreToLevelText(overallAverage);
+                        const overallLevelNumber = Math.ceil(overallAverage);
 
-                // --- CALCOLO LIVELLO E TESTO ---
-                // Assumendo che scoreToLevelText e Math.ceil funzionino con 0
-                const overallLevelText = scoreToLevelText(overallAverage);
-                const overallLevelNumber = Math.ceil(overallAverage);
+                        // 🔹 Ricostruisce i dettagli per la modale
+                        const itemDetails = (lastEval.selections || []).map(selection => {
+                            const sectionData = COMPETENCE_DATA[repartoKey]?.[selection.sectionIndex];
+                            const questionText = sectionData?.questions?.[selection.itemIndex];
+                            return {
+                                question: questionText || `Domanda sconosciuta [${selection.sectionIndex}:${selection.itemIndex}]`,
+                                level: scoreToLevelText(selection.value),
+                                score: selection.value,
+                                sectionKey: sectionData?.key
+                            };
+                        }).filter(d => d.question);
 
-                // --- DETTAGLI DELLE DOMANDE (selezioni) ---
-                // Mappa le selezioni ai dettagli delle domande per la modale (usa un array vuoto se 'selections' manca)
-                const itemDetails = (lastEval.selections || []).map(selection => {
-                    // Usa la costante COMPETENCE_DATA (che deve essere definita nello script standard)
-                    const sectionData = COMPETENCE_DATA[repartoKey]?.[selection.sectionIndex];
-                    const questionText = sectionData?.questions[selection.itemIndex];
+                        // 🔹 Costruisce la riga di report
+                        all.push({
+                            date: lastEval.data,
+                            nome: nurse.nome,
+                            cognome: nurse.cognome,
+                            matricola: nurse.matricola,
+                            reparto: repartoKey,
+                            valutatore: nurse.valutatore || '-',
+                            classe: overallLevelNumber,
+                            levelText: overallLevelText,
+                            overall: lastEval.total,
+                            evalDetails: lastEval.sections,
+                            nurse: nurse,
+                            allItemDetails: itemDetails
+                        });
+                    }
+                });
+            }
+        });
 
-                    return {
-                        question: questionText || `Domanda sconosciuta [${selection.sectionIndex}:${selection.itemIndex}]`,
-                        level: scoreToLevelText(selection.value),
-                        score: selection.value,
-                        sectionKey: sectionData?.key
-                    };
-                }).filter(d => d.question);
+        console.log(`📥 Caricate ${all.length} valutazioni da Firestore.`);
+    } catch (e) {
+        console.error("❌ Errore durante il caricamento dei dati da Firestore:", e);
+    }
 
-
-                // --- PREPARA IL REPORT ROW COMPLETO ---
-                const reportRow = {
-                    date: lastEval.data,
-                    nome: nurse.nome,
-                    cognome: nurse.cognome,
-                    matricola: nurse.matricola,
-                    reparto: repartoKey,
-                    valutatore: lastEval.valutatore || '-',
-                    classe: overallLevelNumber,
-                    levelText: overallLevelText,
-                    overall: overallAverage,
-                    evalDetails: sectionsWithAvg, // Passa solo le sezioni valide al report
-                    nurse: nurse,
-                    allItemsDetails: itemDetails
-                };
-                elaboratedData.push(reportRow);
-            });
-
-            return elaboratedData;
-        }
+    return all;
+}
 
         function populateReparti() {
             const reparti = Array.from(new Set(all.map(x => x.reparto).filter(Boolean)));
@@ -734,34 +763,22 @@
         }
 
         // --- LOGICA DETTAGLI MODALE ---
-        
         function showDetails(item) {
-            // 🛑 CORREZIONE 1: Definisci l'elemento HTML all'inizio della funzione
-            const detailsModal = document.getElementById('detailsModal');
-            const modalNurseName = document.getElementById('modalNurseName');
-            const nurseDetailsSummary = document.getElementById('nurseDetailsSummary');
-            const competenceDetails = document.getElementById('competenceDetails');
-
-            if (!detailsModal) {
-                console.error("Errore: La modal 'detailsModal' non è stata trovata nell'HTML.");
-                return;
-            }
-
             // Aggiorna Riepilogo
             modalNurseName.textContent = `Dettagli Valutazione: ${item.nome} ${item.cognome}`;
             nurseDetailsSummary.innerHTML = `
-        <p><strong>Matricola:</strong> ${item.matricola}</p>
-        <p><strong>Reparto Valutato:</strong> ${item.reparto}</p>
-        <p><strong>Data Valutazione:</strong> ${item.date}</p>
-        <p><strong>Valutatore:</strong> ${item.valutatore}</p>
-        <p class="mt-2 font-bold">Livello Medio Generale: <span class="text-blue-600 dark:text-blue-400">${item.levelText}</span></p>
-        <p>Punteggio Totale: ${item.overall}</p>
-    `;
+                        <p><strong>Matricola:</strong> ${item.matricola}</p>
+                        <p><strong>Reparto Valutato:</strong> ${item.reparto}</p>
+                        <p><strong>Data Valutazione:</strong> ${item.date}</p>
+                        <p><strong>Valutatore:</strong> ${item.valutatore}</p>
+                        <p class="mt-2 font-bold">Livello Medio Generale: <span class="text-blue-600 dark:text-blue-400">${item.levelText}</span></p>
+                        <p>Punteggio Totale: ${item.overall}</p>
+                    `;
 
             // Aggiorna Dettagli Competenze (Domanda per Domanda)
             competenceDetails.innerHTML = '';
             let currentSection = '';
-            item.allItemsDetails.forEach(detail => {
+            item.allItemDetails.forEach(detail => {
                 if (detail.sectionKey !== currentSection) {
                     currentSection = detail.sectionKey;
                     competenceDetails.innerHTML += `<h5 class="font-bold mt-4 mb-1 text-blue-600 dark:text-blue-400">${currentSection}</h5>`;
@@ -770,11 +787,11 @@
                 const color = isAnswered ? (detail.score >= 3 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400') : 'text-gray-500 dark:text-gray-400';
 
                 competenceDetails.innerHTML += `
-            <div class="flex flex-col space-y-0 border-l-2 pl-2 border-gray-200 dark:border-gray-700">
-                <span class="text-xs text-gray-700 dark:text-gray-300">${detail.question}</span>
-                <span class="${color} text-sm font-semibold ml-0">${detail.level}</span>
-            </div>
-        `;
+                            <div class="flex flex-col space-y-0 border-l-2 pl-2 border-gray-200 dark:border-gray-700">
+                                <span class="text-xs text-gray-700 dark:text-gray-300">${detail.question}</span>
+                                <span class="${color} text-sm font-semibold ml-0">${detail.level}</span>
+                            </div>
+                        `;
             });
 
             // Aggiorna Grafico Radar (Media per Sezione)
@@ -792,8 +809,7 @@
                     datasets: [{
                         label: 'Livello Medio per Area',
                         data: dataForRadar,
-                        // Usiamo una verifica per la funzione isDarkMode
-                        backgroundColor: window.isDarkMode && isDarkMode() ? 'rgba(59,130,246,0.3)' : 'rgba(59,130,246,0.18)',
+                        backgroundColor: isDarkMode() ? 'rgba(59,130,246,0.3)' : 'rgba(59,130,246,0.18)',
                         borderColor: '#3b82f6',
                         borderWidth: 2
                     }]
@@ -819,38 +835,18 @@
             detailsModal.classList.add('flex');
         }
 
-        // Funzione centralizzata per chiudere la modal (chiamata dai listener e dai pulsanti)
-        function closeModal() {
-            const detailsModal = document.getElementById('detailsModal');
-            if (detailsModal) {
+        // Gestione chiusura Modale
+        closeModalButtons.forEach(btn => btn.addEventListener('click', () => {
+            detailsModal.classList.add('hidden');
+            detailsModal.classList.remove('flex');
+        }));
+        // Chiudi Modale cliccando fuori
+        detailsModal.addEventListener('click', (e) => {
+            if (e.target === detailsModal) {
                 detailsModal.classList.add('hidden');
                 detailsModal.classList.remove('flex');
             }
-            // Distrugge il grafico
-            if (radarDetailsChart) {
-                radarDetailsChart.destroy();
-                radarDetailsChart = null;
-            }
-        }
-
-        // 🛑 CORREZIONE 2: Collega i listener ai pulsanti specifici dopo che il DOM è pronto
-        window.addEventListener('DOMContentLoaded', () => {
-            const detailsModal = document.getElementById('detailsModal');
-            const closeModalButtonTop = document.getElementById('closeModal'); // L'ID del pulsante X
-            const closeModalButtonBottom = document.getElementById('modalCloseBottom'); // L'ID del pulsante Chiudi in basso
-
-            // Aggiungi listener per la chiusura
-            closeModalButtonTop?.addEventListener('click', closeModal);
-            closeModalButtonBottom?.addEventListener('click', closeModal);
-
-            // Chiudi Modale cliccando fuori
-            detailsModal?.addEventListener('click', (e) => {
-                if (e.target === detailsModal) {
-                    closeModal();
-                }
-            });
         });
-
         // --- FINE LOGICA DETTAGLI MODALE ---
 
 
@@ -884,30 +880,22 @@
 
             filtered.forEach(item => {
                 const row = tableBody.insertRow();
-                // Lasciamo la classe 'cursor-pointer' sulla riga come da tua intenzione
                 row.className = 'border-b hover:bg-blue-50 dark:hover:bg-gray-700 cursor-pointer transition-colors';
 
                 // Usa la proprietà 'classe' (1, 2, 3 o 4) che ora deriva dalla media
-                const levelColor = item.classe === 4 ? 'bg-green-100 text-green-800' :
-                    item.classe === 3 ? 'bg-blue-100 text-blue-800' :
-                        'bg-yellow-100 text-yellow-800';
+                const levelColor = item.classe === 4 ? 'bg-green-100 text-green-800' : item.classe === 3 ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800';
 
                 row.innerHTML = `
-            <td class="p-3 text-sm">${item.date}</td>
-            <td class="p-3 text-sm font-semibold">${item.nome} ${item.cognome}</td> 
-            <td class="p-3 text-sm">${item.matricola}</td>
-            <td class="p-3 text-sm">${item.reparto}</td>
-            <td class="p-3 text-sm"><span class="px-2 py-0.5 rounded-full text-xs font-medium ${levelColor}">${item.levelText}</span></td>
-            <td class="p-3 text-sm font-semibold">${item.overall}</td>
-        `;
+                    <td class="p-3 text-sm">${item.date}</td>
+                    <td class="p-3 text-sm">${item.nome} ${item.cognome}</td>
+                    <td class="p-3 text-sm">${item.matricola}</td>
+                    <td class="p-3 text-sm">${item.reparto}</td>
+                    <td class="p-3 text-sm"><span class="px-2 py-0.5 rounded-full text-xs font-medium ${levelColor}">${item.levelText}</span></td>
+                    <td class="p-3 text-sm font-semibold">${item.overall}</td>
+                `;
 
-                // 🛑 L'EVENTO CLICK VA SULLA RIGA: 
-                // L'evento deve chiamare la tua funzione che apre la modal (openCompetenceModal), 
-                // non 'showDetails' a meno che tu non abbia rinominato la funzione.
-                // Se la funzione si chiama openCompetenceModal, usa quella. Altrimenti, usa 'showDetails'.
-                // Assumo tu voglia ripristinare il nome corretto dal contesto:
+                // NUOVO LISTENER: Clicca per aprire i dettagli
                 row.addEventListener('click', () => showDetails(item));
-
             });
 
             // Aggiorna i grafici con i dati filtrati
@@ -1013,67 +1001,51 @@
         filterReparto.addEventListener('change', renderTable);
         searchText.addEventListener('input', renderTable);
 
-     </script>
-    <script type="module">// Importa solo le librerie necessarie (App e Firestore)
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        // EVENTO PER NUOVA FUNZIONE AI
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btnAnalyze').addEventListener('click', performAIAnalysis);
+        });
+// 🚀 Inizializzazione asincrona (attende Firestore)
+        async function init() {
+    // 1️⃣ Applica il tema salvato e imposta i colori Chart.js globali
+    applyTheme(currentTheme);
 
-        // **ATTENZIONE:** Incolla qui la tua firebaseConfig REALE con i dati corretti.
-        const firebaseConfig = {
-            apiKey: "AIzaSyDuDjV6nU5YuNfkivTKJ1kf6NwmkGRIi34",
-            authDomain: "clinicalcompetenceor.firebaseapp.com",
-            projectId: "clinicalcompetenceor",
-            storageBucket: "clinicalcompetenceor.firebasestorage.app",
-            messagingSenderId: "91172915109",
-            appId: "1:91172915109:web:f548cb1f92fb5ae08f8a4c",
-            // measurementId: "G-V547BJD3VC" // NON NECESSARIO SENZA L'IMPORT
-        };
+    // 2️⃣ Crea le istanze dei grafici (ora con i colori del tema corretti)
+    initCharts();
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    // 3️⃣ Carica i dati da Firestore (attende completamento)
+    all = await loadAll();  // 🔹 ATTENDE i dati Firestore
+    populateReparti();
 
-        // 🔹 La funzione loadAll (caricamento da Firebase)
-        // ... (tutto il codice di importazione e configurazione Firebase)
+    // 4️⃣ Popola la tabella e aggiorna i grafici con i dati reali
+    renderTable();
 
-        // 🔹 La funzione loadAll (caricamento da Firebase)
-        async function loadAll() {
-            // ... (il tuo codice per getDocs e map)
-            const snapshot = await getDocs(collection(db, "valutazioni"));
-            const all = snapshot.docs.map(doc => doc.data());
-            console.log("🔥 Dati caricati da Firebase (raw):", all);
-            return all;
+    console.log("✅ Report inizializzato con dati Firestore");
+}
+init();</script>
+
+    <script>
+
+        // Esempio: caricamento dei dati
+        async function loadDataset(reparto) {
+            try {
+                const ref = db.collection("datasets").doc(reparto);
+                const snap = await ref.get();
+                if (snap.exists) {
+                    console.log("📥 Dati caricati da Firestore:", reparto);
+                    return snap.data();
+                } else {
+                    console.warn("⚠️ Nessun dato trovato per:", reparto);
+                    return null;
+                }
+            } catch (e) {
+                console.error("❌ Errore durante il caricamento Firestore:", e);
+                return null;
+            }
         }
 
-        // 🔹 Chiamata automatica al caricamento (gestione Asincrona e avvio report)
-        window.addEventListener("DOMContentLoaded", async () => {
-            try {
-                // 1. Applica il tema salvato (fatto qui per usare i colori prima di initCharts,
-                // ma DEVE chiamare la funzione 'applyTheme' definita nello script standard)
-                applyTheme(currentTheme);
+        // Richiamo di esempio
+        loadDataset("Chirurgia Generale");</script>
 
-                // 2. Crea le istanze dei grafici (deve essere chiamata DOPO applyTheme)
-                // initCharts(); // NOTA: Spostiamo initCharts DOPO che i dati sono pronti per evitare errori
-
-                // 3. Carica i dati grezzi da Firebase
-                const rawFirebaseData = await loadAll();
-
-                // 4. Elabora i dati grezzi con la funzione nello script standard
-                // 'all' è la variabile globale del report
-                all = prepareReportData(rawFirebaseData);
-
-                console.log("✅ Dati elaborati finali per il report:", all);
-
-                // 5. Avvia la visualizzazione (La vecchia logica di init() + update)
-                initCharts(); // Inizializza i grafici ORA che 'all' è pronto
-                populateReparti();
-                renderTable();
-                updateBarChart(all);
-                updatePieCharts(all);
-
-            } catch (error) {
-                console.error("Errore fatale durante il caricamento del report:", error);
-                alert("Non è stato possibile caricare i dati da Firebase. Controlla la console.");
-            }
-        });</script>
 </body>
 </html>
