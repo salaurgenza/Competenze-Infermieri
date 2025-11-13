@@ -99,7 +99,7 @@
     </div>
 </main>
 
-<!-- SCRIPT PRINCIPALE: CHART, TEMA, STRUTTURA DATI -->
+<!-- SCRIPT PRINCIPALE: tema, struttura dati, grafico -->
 <script>
     const THEME_KEY = 'mappa_tiro_tema';
     let chart = null;
@@ -136,6 +136,35 @@
     // ---------- UTILITA' PUNTEGGI ----------
     function scoreToLevelNumber(score) {
         return Math.min(4, Math.max(1, Math.ceil(score)));
+    }
+
+    // 🔥 NUOVA: calcolo della CLASSE DOMINANTE dai value delle selections
+    function computeDominantLevel(selections = []) {
+        const counts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+
+        selections.forEach(sel => {
+            const v = parseInt(sel.value);
+            if ([1, 2, 3, 4].includes(v)) {
+                counts[v]++;
+            }
+        });
+
+        let dominant = 1;
+        let maxCount = 0;
+        for (let level = 1; level <= 4; level++) {
+            if (counts[level] > maxCount) {
+                dominant = level;
+                maxCount = counts[level];
+            } else if (counts[level] === maxCount && counts[level] > 0) {
+                // in caso di parità, preferisco il livello PIÙ ALTO
+                dominant = Math.max(dominant, level);
+            }
+        }
+
+        if (maxCount === 0) {
+            return null; // nessuna risposta valida
+        }
+        return dominant;
     }
 
     // ---------- PREPARA STRUTTURA DATI PER IL GRAFICO ----------
@@ -353,12 +382,18 @@
             });
         }
     });
+
+    // Espongo alcune funzioni al module Firebase
+    window.prepareChartData = prepareChartData;
+    window.initChart = initChart;
+    window.renderLegend = renderLegend;
+    window.computeDominantLevel = computeDominantLevel;
 </script>
 
-<!-- SCRIPT FIREBASE: LEGGE TUTTE LE VALUTAZIONI DA clinicalcompetenceor.infermieri -->
+<!-- SCRIPT FIREBASE: LEGGE DA datasets/{Chirurgia Generale, ...} -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDuDjV6nU5YuNfkivTKJ1kf6NwmkGRIi34",
@@ -373,101 +408,107 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Aggrega TUTTE le valutazioni (storico) da infermieri/*
-    async function loadAllEvaluationsFromFirestore() {
-        const snap = await getDocs(collection(db, "infermieri"));
+    // 🔥 DOCUMENTI DATASET DA LEGGERE
+    const DATASET_REPARTI = [
+        "Chirurgia Generale",
+        "Day Surgery Oculistica",
+        "Chirurgie Specialistiche"
+    ];
+
+    // 🔥 Legge TUTTI i dataset e aggrega con logica "classe dominante"
+    async function loadFromDatasets() {
         const aggregatedCounts = {};
 
-        snap.forEach(docSnap => {
-            const nurse = docSnap.data();
-            const repartoNurse = nurse.reparto;
+        for (const repartoKey of DATASET_REPARTI) {
+            const ref = doc(db, "datasets", repartoKey);
+            const snap = await getDoc(ref);
+            if (!snap.exists()) continue;
 
-            // tutte le valutazioni storiche + fallback ultimaValutazione
-            const valutazioni = Array.isArray(nurse.valutazioni)
-                ? nurse.valutazioni
-                : (nurse.ultimaValutazione ? [nurse.ultimaValutazione] : []);
+            const docData = snap.data();
+            const infermieri = Array.isArray(docData.infermieri) ? docData.infermieri : [];
 
-            valutazioni.forEach(evalRecord => {
-                const repartoKey = evalRecord.reparto || repartoNurse;
-                if (!repartoKey) return;
+            infermieri.forEach(nurse => {
+                // Usa TUTTE le valutazioni storiche
+                const valutazioni = Array.isArray(nurse.valutazioni)
+                    ? nurse.valutazioni
+                    : (nurse.ultimaValutazione ? [nurse.ultimaValutazione] : []);
 
-                const sections = Array.isArray(evalRecord.sections) ? evalRecord.sections : [];
-                const sectionsWithAvg = sections.filter(s => (s.answeredCount || 0) > 0);
-                if (sectionsWithAvg.length === 0) return;
+                // raccogli tutte le selections di TUTTE le valutazioni
+                const allSelections = [];
+                valutazioni.forEach(v => {
+                    if (Array.isArray(v.selections)) {
+                        allSelections.push(...v.selections);
+                    }
+                });
 
-                const totalAverage = sectionsWithAvg.reduce((sum, s) => sum + (s.average || 0), 0);
-                const overallAverage = totalAverage / sectionsWithAvg.length;
-                const overallLevel = window.scoreToLevelNumber
-                    ? window.scoreToLevelNumber(overallAverage)
-                    : Math.min(4, Math.max(1, Math.ceil(overallAverage)));
+                const dominantLevel = window.computeDominantLevel(allSelections);
+                if (!dominantLevel) return; // nessuna risposta significativa
 
-                sections.forEach(section => {
-                    if ((section.answeredCount || 0) === 0) return;
+                // Per non contare più volte la stessa competenza per lo stesso infermiere
+                const seenCompetences = new Set();
 
-                    const compKey = section.key || section.nome || 'Competenza';
-                    const key = `${repartoKey}|${compKey}|${overallLevel}`;
-                    aggregatedCounts[key] = (aggregatedCounts[key] || 0) + 1;
+                valutazioni.forEach(v => {
+                    const sections = Array.isArray(v.sections) ? v.sections : [];
+                    sections.forEach(section => {
+                        if ((section.answeredCount || 0) === 0) return;
+                        const compKey = section.key || section.nome || "Competenza";
+                        if (seenCompetences.has(compKey)) return;
+                        seenCompetences.add(compKey);
+
+                        const key = `${repartoKey}|${compKey}|${dominantLevel}`;
+                        aggregatedCounts[key] = (aggregatedCounts[key] || 0) + 1;
+                    });
                 });
             });
-        });
+        }
 
         return aggregatedCounts;
     }
 
-    function startRealtimeChart() {
+    async function initDatasetChart() {
         const chartDiv = document.getElementById('targetChart');
         const noDataMsg = document.getElementById('noDataMessage');
         const centerText = document.getElementById('centerText');
 
-        // Ascolta TUTTE le modifiche alla collection infermieri
-        onSnapshot(collection(db, "infermieri"), async () => {
-            const aggregatedCounts = await loadAllEvaluationsFromFirestore();
+        const aggregatedCounts = await loadFromDatasets();
 
-            if (!aggregatedCounts || Object.keys(aggregatedCounts).length === 0) {
-                chartDiv.style.display = 'none';
-                centerText.style.display = 'none';
-                noDataMsg.classList.remove('hidden');
-                if (window.chart) {
-                    try { window.chart.destroy(); } catch (e) {}
-                    window.chart = null;
-                }
-                return;
-            }
-
-            const chartData = window.prepareChartData
-                ? window.prepareChartData(aggregatedCounts)
-                : prepareChartData(aggregatedCounts);
-
-            if (!chartData || chartData.reparto.data.length === 0) {
-                chartDiv.style.display = 'none';
-                centerText.style.display = 'none';
-                noDataMsg.classList.remove('hidden');
-                if (window.chart) {
-                    try { window.chart.destroy(); } catch (e) {}
-                    window.chart = null;
-                }
-                return;
-            }
-
-            noDataMsg.classList.add('hidden');
-            chartDiv.style.display = 'block';
-            centerText.style.display = 'block';
-
+        if (!aggregatedCounts || Object.keys(aggregatedCounts).length === 0) {
+            chartDiv.style.display = 'none';
+            centerText.style.display = 'none';
+            noDataMsg.classList.remove('hidden');
             if (window.chart) {
                 try { window.chart.destroy(); } catch (e) {}
+                window.chart = null;
             }
+            return;
+        }
 
-            window.chart = window.initChart
-                ? window.initChart(chartData)
-                : initChart(chartData);
+        const chartData = window.prepareChartData(aggregatedCounts);
 
-            if (window.renderLegend) {
-                window.renderLegend();
+        if (!chartData || chartData.reparto.data.length === 0) {
+            chartDiv.style.display = 'none';
+            centerText.style.display = 'none';
+            noDataMsg.classList.remove('hidden');
+            if (window.chart) {
+                try { window.chart.destroy(); } catch (e) {}
+                window.chart = null;
             }
-        });
+            return;
+        }
+
+        noDataMsg.classList.add('hidden');
+        chartDiv.style.display = 'block';
+        centerText.style.display = 'block';
+
+        if (window.chart) {
+            try { window.chart.destroy(); } catch (e) {}
+        }
+
+        window.chart = window.initChart(chartData);
+        window.renderLegend();
     }
 
-    document.addEventListener("DOMContentLoaded", startRealtimeChart);
+    document.addEventListener("DOMContentLoaded", initDatasetChart);
 </script>
 
 </body>
