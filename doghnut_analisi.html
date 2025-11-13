@@ -21,10 +21,13 @@
         <h6 class="text-[10px] font-semibold">Mappa Competenze Chirurgiche</h6>
 
         <div class="flex items-center space-x-3">
-            <button onclick="window.location.href='report.html'" class="bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors text-sm">
+            <button onclick="window.location.href='report.html'"
+                    class="bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors text-sm">
                 ← Torna al Report
             </button>
-            <button id="themeToggle" class="bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors" aria-label="Cambia tema">
+            <button id="themeToggle"
+                    class="bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors"
+                    aria-label="Cambia tema">
                 <span id="themeIcon">☀️</span>
             </button>
         </div>
@@ -40,37 +43,55 @@
                         Mappa<br>Competenze<br>Chirurgiche
                     </p>
                 </div>
-                <p id="noDataMessage" class="absolute hidden text-xl text-center text-red-500 bg-white/90 dark:bg-gray-800/90 p-4 rounded-lg shadow-lg">
+                <p id="noDataMessage"
+                   class="absolute hidden text-xl text-center text-red-500 bg-white/90 dark:bg-gray-800/90 p-4 rounded-lg shadow-lg">
                     Nessun dato di competenza trovato.
                 </p>
             </div>
 
             <div id="chartLegend" class="mt-8 w-full max-w-xl">
-                <h3 class="text-lg font-bold border-b pb-2 mb-4 text-gray-700 dark:text-gray-300">Legenda Classi di Livello (Nucleo)</h3>
-                <div id="legendItems" class="grid grid-cols-2 gap-4 text-sm font-semibold">
-                </div>
+                <h3 class="text-lg font-bold border-b pb-2 mb-4 text-gray-700 dark:text-gray-300">
+                    Legenda Classi di Livello (Nucleo)
+                </h3>
+                <div id="legendItems" class="grid grid-cols-2 gap-4 text-sm font-semibold"></div>
             </div>
-            <div id="actionPlanLegend" class="mt-12 w-full max-w-4xl p-6 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-blue-200 dark:border-blue-700">
-                <h3 class="text-xl font-bold mb-4 text-blue-700 dark:text-blue-300 border-b pb-2">Piano d'Azione Strategico per la Crescita</h3>
+
+            <div id="actionPlanLegend"
+                 class="mt-12 w-full max-w-4xl p-6 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-blue-200 dark:border-blue-700">
+                <h3 class="text-xl font-bold mb-4 text-blue-700 dark:text-blue-300 border-b pb-2">
+                    Piano d'Azione Strategico per la Crescita
+                </h3>
 
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
 
                     <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700 shadow-lg border-t-4 border-blue-500/70">
                         <p class="text-lg font-bold text-blue-500 mb-2">Da Livello 1 (Diretta) a 2 (Indiretta)</p>
-                        <p class="font-semibold text-gray-800 dark:text-gray-200">Azione: Simulatori e Training Intensivo.</p>
-                        <p class="text-sm italic text-gray-600 dark:text-gray-400 mt-1">Misura: Numero di Sessioni di Simulazione/Formazione Completate.</p>
+                        <p class="font-semibold text-gray-800 dark:text-gray-200">
+                            Azione: Simulatori e Training Intensivo.
+                        </p>
+                        <p class="text-sm italic text-gray-600 dark:text-gray-400 mt-1">
+                            Misura: Numero di Sessioni di Simulazione/Formazione Completate.
+                        </p>
                     </div>
 
                     <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700 shadow-lg border-t-4 border-green-500/70">
                         <p class="text-lg font-bold text-green-500 mb-2">Da Livello 2 (Indiretta) a 3 (Autonomo)</p>
-                        <p class="font-semibold text-gray-800 dark:text-gray-200">Azione: Programmi di Mentorship Mirata.</p>
-                        <p class="text-sm italic text-gray-600 dark:text-gray-400 mt-1">Misura: Numero di Affiancamenti completati con valutazione finale di Autonomia.</p>
+                        <p class="font-semibold text-gray-800 dark:text-gray-200">
+                            Azione: Programmi di Mentorship Mirata.
+                        </p>
+                        <p class="text-sm italic text-gray-600 dark:text-gray-400 mt-1">
+                            Misura: Numero di Affiancamenti completati con valutazione finale di Autonomia.
+                        </p>
                     </div>
 
                     <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700 shadow-lg border-t-4 border-amber-500/70">
                         <p class="text-lg font-bold text-amber-500 mb-2">Da Livello 3 (Autonomo) a 4 (Formatore)</p>
-                        <p class="font-semibold text-gray-800 dark:text-gray-200">Azione: Certificazione da Valutatore Interno.</p>
-                        <p class="text-sm italic text-gray-600 dark:text-gray-400 mt-1">Misura: Numero di Corsi di Formazione Interna tenuti con successo.</p>
+                        <p class="font-semibold text-gray-800 dark:text-gray-200">
+                            Azione: Certificazione da Valutatore Interno.
+                        </p>
+                        <p class="text-sm italic text-gray-600 dark:text-gray-400 mt-1">
+                            Misura: Numero di Corsi di Formazione Interna tenuti con successo.
+                        </p>
                     </div>
 
                 </div>
@@ -78,11 +99,11 @@
         </div>
     </main>
 
-    <script>const STORAGE_KEY = 'valutazioni_dashboard_v2';
-        const THEME_KEY = 'mappa_tiro_tema';
+    <!-- SCRIPT PRINCIPALE: CHART, TEMA, STRUTTURA DATI -->
+    <script>const THEME_KEY = 'mappa_tiro_tema';
         let chart = null;
 
-
+        // Mappa reparti (anello esterno)
         const repartiMap = {
             'Chirurgia Generale': {
                 name: 'Chirurgia Generale',
@@ -101,7 +122,7 @@
             },
         };
 
-
+        // Mappa classi (anello interno)
         const classiMap = {
             4: { label: "Form", color: "#cdb4db" },
             3: { label: "Aut", color: "turquoise" },
@@ -109,46 +130,11 @@
             1: { label: "Dir", color: "#f7a8a8" },
         };
 
-        const levelOrder = [4, 3, 2, 1]; // Ordine Classi per garantire coerenza
+        const levelOrder = [4, 3, 2, 1]; // Ordine livelli nel nucleo
 
         // --- FUNZIONI DATI ---
         function scoreToLevelNumber(score) {
             return Math.min(4, Math.max(1, Math.ceil(score)));
-        }
-
-        function loadAndAggregateData() {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) return null;
-            const data = JSON.parse(raw);
-            let aggregatedData = {};
-
-            for (const repartoKey in data) {
-                if (data[repartoKey].infermieri) {
-                    data[repartoKey].infermieri.forEach(nurse => {
-                        const lastEval = nurse.valutazioni ? nurse.valutazioni.find(v => v.reparto === repartoKey) : null;
-
-                        if (lastEval) {
-                            const sectionsWithAvg = lastEval.sections.filter(s => (s.answeredCount || 0) > 0);
-                            const totalAverage = sectionsWithAvg.reduce((sum, s) => sum + (s.average || 0), 0);
-                            const answeredGroups = sectionsWithAvg.length;
-                            const overallAverage = answeredGroups > 0 ? totalAverage / answeredGroups : 0;
-                            const overallLevel = scoreToLevelNumber(overallAverage);
-
-                            // Aggregazione per Reparto, Competenza e Livello
-                            lastEval.sections.forEach(section => {
-                                if ((section.answeredCount || 0) > 0) {
-                                    const repInfo = repartiMap[repartoKey];
-                                    if (!repInfo) return;
-
-                                    const key = `${repartoKey}|${section.key}|${overallLevel}`;
-                                    aggregatedData[key] = (aggregatedData[key] || 0) + 1;
-                                }
-                            });
-                        }
-                    });
-                }
-            }
-            return aggregatedData;
         }
 
         function prepareChartData(aggregatedCounts) {
@@ -158,12 +144,14 @@
             Object.keys(aggregatedCounts).forEach(key => {
                 const [reparto, competence, levelStr] = key.split('|');
                 const count = aggregatedCounts[key];
-                const level = parseInt(levelStr);
+                const level = parseInt(levelStr, 10);
                 totalOccurrences += count;
 
                 if (!repartiMap[reparto]) return;
 
-                if (!structure[reparto]) structure[reparto] = { count: 0, subItems: {} };
+                if (!structure[reparto]) {
+                    structure[reparto] = { count: 0, subItems: {} };
+                }
                 structure[reparto].count += count;
 
                 if (!structure[reparto].subItems[competence]) {
@@ -177,7 +165,6 @@
                 structure[reparto].subItems[competence].subItems[level].count += count;
             });
 
-            // Dati per i 3 anelli
             let levelData = { data: [], backgroundColor: [], labels: [] };
             let competenceData = { data: [], backgroundColor: [], labels: [] };
             let repartoData = { data: [], backgroundColor: [], labels: [] };
@@ -188,7 +175,7 @@
                 const repItem = structure[repartoKey];
                 const repInfo = repartiMap[repartoKey];
 
-                // Esterno: Reparto (Peso: Somma delle occorrenze nel reparto)
+                // Anello esterno: Reparto
                 repartoData.data.push(repItem.count);
                 repartoData.labels.push(repInfo.name);
                 repartoData.backgroundColor.push(repInfo.color);
@@ -198,10 +185,10 @@
                 sortedCompetences.forEach(compKey => {
                     const compItem = repItem.subItems[compKey];
 
-                    // Intermedio: Competenza (Peso: Somma delle occorrenze nella competenza)
+                    // Anello intermedio: Competenza
                     competenceData.data.push(compItem.count);
                     competenceData.labels.push(`${compKey}`);
-                    // Usa un colore derivato dal reparto
+
                     const competenceBaseColor = Chart.helpers.color(repInfo.color).darken(0.1).rgbString();
                     competenceData.backgroundColor.push(competenceBaseColor);
 
@@ -211,7 +198,7 @@
                         const levelItem = compItem.subItems[level];
                         const levelInfo = classiMap[level];
 
-                        // Interno: Classe/Livello (Peso: occorrenze specifiche)
+                        // Anello interno: Livelli/Classi
                         levelData.data.push(levelItem.count);
                         levelData.labels.push(levelInfo.label);
                         levelData.backgroundColor.push(levelInfo.color);
@@ -221,7 +208,11 @@
 
             if (totalOccurrences === 0) return null;
 
-            return { level: levelData, competence: competenceData, reparto: repartoData };
+            return {
+                level: levelData,
+                competence: competenceData,
+                reparto: repartoData
+            };
         }
 
         // --- DARK MODE ---
@@ -233,25 +224,23 @@
                 document.documentElement.classList.add('dark');
                 document.getElementById('themeIcon').textContent = '🌙';
                 Chart.defaults.color = '#e5e7eb';
-                Chart.defaults.borderColor = '#374151'; // Bordo scuro in dark mode
+                Chart.defaults.borderColor = '#374151';
             } else {
                 document.documentElement.classList.remove('dark');
                 document.getElementById('themeIcon').textContent = '☀️';
                 Chart.defaults.color = '#1f2937';
-                Chart.defaults.borderColor = '#e5e7eb'; // Bordo chiaro in light mode (per l'effetto "piastrella")
+                Chart.defaults.borderColor = '#e5e7eb';
             }
         }
-
 
         function initChart(data) {
             const ctx = document.getElementById("targetChart").getContext("2d");
 
             return new Chart(ctx, {
                 type: 'doughnut',
-
                 data: {
                     datasets: [
-                        // Dataset 0: Interno - Classi/Livelli (Anello più interno)
+                        // 0 - Interno: Classi/Livelli
                         {
                             label: "Classi",
                             data: data.level.data,
@@ -267,23 +256,23 @@
                                 font: { weight: "bold", size: 14 }
                             }
                         },
-                        // Dataset 1: Intermedio - Competenze (Anello centrale)
+                        // 1 - Intermedio: Competenze
                         {
                             label: "Competenze",
                             data: data.competence.data,
                             backgroundColor: data.competence.backgroundColor,
                             labels: data.competence.labels,
                             borderWidth: 4,
-                            cutout: "15%", // Spessore: 45% - 15% = 30%
+                            cutout: "15%",
                             weight: 0.5,
                             datalabels: {
                                 display: true,
                                 formatter: (v, ctx) => ctx.dataset.labels[ctx.dataIndex],
-                                color: (ctx) => isDarkMode() ? 'grey' : 'grey', // Etichette nere in light mode
+                                color: () => 'grey',
                                 font: { weight: "bold", size: 10 }
                             }
                         },
-                        // Dataset 2: Esterno - Reparti (Anello più esterno)
+                        // 2 - Esterno: Reparti
                         {
                             label: "Reparti",
                             data: data.reparto.data,
@@ -297,12 +286,11 @@
                                 formatter: (v, ctx) => ctx.dataset.labels[ctx.dataIndex],
                                 color: "Darkblue",
                                 font: { weight: "bold", size: 18 },
-                                anchor: 'end',   // posiziona all’esterno dell’arco
-                                align: 'end',    // allinea verso l’esterno
-                                offset: 20       // distanza dal bordo dell’anello
+                                anchor: 'end',
+                                align: 'end',
+                                offset: 20
                             }
                         }
-
                     ]
                 },
                 options: {
@@ -324,81 +312,52 @@
             });
         }
 
-        // --- NUOVA FUNZIONE LEGENDA (COLORI) ---
         function renderLegend() {
             const legendContainer = document.getElementById('legendItems');
             if (!legendContainer) return;
 
-            // Pulisci prima di popolare
             legendContainer.innerHTML = '';
 
-            // Itera sull'ordine desiderato
             levelOrder.forEach(level => {
                 const info = classiMap[level];
                 if (info) {
                     const item = document.createElement('div');
                     item.className = 'flex items-center space-x-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-700 shadow-sm';
                     item.innerHTML = `
-                                <span class="w-4 h-4 rounded-full" style="background-color: ${info.color}; border: 1px solid ${isDarkMode() ? '#e5e7eb' : '#374151'};"></span>
-                                <span>Livello ${level}: ${info.label}</span>
-                            `;
+                        <span class="w-4 h-4 rounded-full"
+                              style="background-color: ${info.color};
+                                     border: 1px solid ${isDarkMode() ? '#e5e7eb' : '#374151'};"></span>
+                        <span>Livello ${level}: ${info.label}</span>
+                    `;
                     legendContainer.appendChild(item);
                 }
             });
         }
 
-
-        // --- INIT ---
-        function init() {
+        // Tema toggle
+        document.addEventListener('DOMContentLoaded', () => {
             applyTheme(currentTheme);
 
-            const aggregatedCounts = loadAndAggregateData();
-
-            const chartDiv = document.getElementById('targetChart');
-            const noDataMsg = document.getElementById('noDataMessage');
-            const centerText = document.getElementById('centerText');
-
-            if (!aggregatedCounts || Object.keys(aggregatedCounts).length === 0) {
-                chartDiv.style.display = 'none';
-                centerText.style.display = 'none';
-                noDataMsg.classList.remove('hidden');
-                return;
+            const btn = document.getElementById('themeToggle');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+                    currentTheme = newTheme;
+                    localStorage.setItem(THEME_KEY, newTheme);
+                    applyTheme(newTheme);
+                    if (window.chart) {
+                        window.chart.update();
+                    }
+                    renderLegend();
+                });
             }
-
-            const chartData = prepareChartData(aggregatedCounts);
-
-            if (!chartData || chartData.reparto.data.length === 0) {
-                chartDiv.style.display = 'none';
-                centerText.style.display = 'none';
-                noDataMsg.classList.remove('hidden');
-                return;
-            }
-
-            // Tutto ok, nascondi messaggio di errore e crea il grafico
-            noDataMsg.classList.add('hidden');
-            chartDiv.style.display = 'block';
-            centerText.style.display = 'block';
-
-            chart = initChart(chartData);
-
-            // CHIAMA LA FUNZIONE LEGENDA
-            renderLegend();
-        }
-
-        document.addEventListener('DOMContentLoaded', init);
-
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-            localStorage.setItem(THEME_KEY, newTheme);
-            applyTheme(newTheme);
-            chart?.update();
-            // Ricarica la legenda (per l'eventuale cambio di colore del bordo)
-            renderLegend();
         });</script>
-    <script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-        // 🔥 Configurazione esattamente come in report.html
+    <!-- SCRIPT FIREBASE (clinicalcompetenceor) + AGGREGAZIONE DA FIRESTORE -->
+    <script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        // 🔥 Configurazione clinicalcompetenceor
         const firebaseConfig = {
             apiKey: "AIzaSyDuDjV6nU5YuNfkivTKJ1kf6NwmkGRIi34",
             authDomain: "clinicalcompetenceor.firebaseapp.com",
@@ -409,102 +368,119 @@
             measurementId: "G-V547BJD3VC"
         };
 
-        // Inizializza Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // ======================================================
-        // 🔹 SOSTITUZIONE FUNZIONE loadAndAggregateData()
-        //    per leggere le valutazioni da Firestore invece che da localStorage
-        // ======================================================
-        async function loadAndAggregateDataFromFirestore() {
-            const snapshot = await getDocs(collection(db, "valutazioni"));
-            if (snapshot.empty) return null;
-
-            const data = {};
-            snapshot.forEach(docSnap => {
-                const val = docSnap.data();
-                if (!val.reparto || !val.infermiere) return;
-
-                if (!data[val.reparto]) data[val.reparto] = { infermieri: [] };
-                data[val.reparto].infermieri.push({
-                    nome: val.infermiere.nome,
-                    valutazioni: [val]
-                });
-            });
-
-            // 🔁 Riusa la stessa logica di aggregazione
-            return window.loadAndAggregateDataFromObject(data);
-        }
-
-        // ======================================================
-        // 🔹 Wrapper per riutilizzare la funzione originale
-        // ======================================================
+        // 🔁 Wrapper: aggrega dati a partire da una struttura { reparto: { infermieri:[{ valutazioni: [...] }] } }
         window.loadAndAggregateDataFromObject = function (data) {
             let aggregatedData = {};
+
             for (const repartoKey in data) {
-                if (data[repartoKey].infermieri) {
-                    data[repartoKey].infermieri.forEach(nurse => {
-                        const lastEval = nurse.valutazioni ? nurse.valutazioni.find(v => v.reparto === repartoKey) : null;
-                        if (lastEval) {
-                            const sectionsWithAvg = lastEval.sections.filter(s => (s.answeredCount || 0) > 0);
+                const repartoEntry = data[repartoKey];
+                if (!repartoEntry.infermieri) continue;
+
+                repartoEntry.infermieri.forEach(nurse => {
+                    const valutazioni = Array.isArray(nurse.valutazioni) ? nurse.valutazioni : [];
+                    // ➜ CONSIDERiamo TUTTE le valutazioni per quel reparto
+                    valutazioni
+                        .filter(v => v.reparto === repartoKey)
+                        .forEach(evalRecord => {
+
+                            const sectionsWithAvg = (evalRecord.sections || []).filter(s => (s.answeredCount || 0) > 0);
                             const totalAverage = sectionsWithAvg.reduce((sum, s) => sum + (s.average || 0), 0);
                             const answeredGroups = sectionsWithAvg.length;
                             const overallAverage = answeredGroups > 0 ? totalAverage / answeredGroups : 0;
                             const overallLevel = Math.min(4, Math.max(1, Math.ceil(overallAverage)));
 
-                            lastEval.sections.forEach(section => {
-                                if ((section.answeredCount || 0) > 0) {
-                                    const repInfo = repartiMap[repartoKey];
-                                    if (!repInfo) return;
-                                    const key = `${repartoKey}|${section.key || section.nome}|${overallLevel}`;
-                                    aggregatedData[key] = (aggregatedData[key] || 0) + 1;
-                                }
+                            (evalRecord.sections || []).forEach(section => {
+                                if ((section.answeredCount || 0) === 0) return;
+
+                                const repInfo = window.repartiMap ? window.repartiMap[repartoKey] : null;
+                                if (!repInfo) return;
+
+                                const compKey = section.key || section.nome || 'Competenza';
+                                const key = `${repartoKey}|${compKey}|${overallLevel}`;
+
+                                aggregatedData[key] = (aggregatedData[key] || 0) + 1;
                             });
-                        }
-                    });
-                }
+                        });
+                });
             }
+
             return aggregatedData;
         };
 
-        // ======================================================
-        // 🔹 Inizializzazione grafico modificata
-        // ======================================================
-        async function init() {
-            applyTheme(currentTheme);
-
-            const aggregatedCounts = await loadAndAggregateDataFromFirestore();
-
+        // 🔥 Avvio grafico in tempo reale
+        function startRealtimeChart() {
             const chartDiv = document.getElementById('targetChart');
             const noDataMsg = document.getElementById('noDataMessage');
             const centerText = document.getElementById('centerText');
 
-            if (!aggregatedCounts || Object.keys(aggregatedCounts).length === 0) {
-                chartDiv.style.display = 'none';
-                centerText.style.display = 'none';
-                noDataMsg.classList.remove('hidden');
-                return;
-            }
+            onSnapshot(collection(db, "valutazioni"), (snapshot) => {
+                const data = {};
 
-            const chartData = prepareChartData(aggregatedCounts);
-            if (!chartData || chartData.reparto.data.length === 0) {
-                chartDiv.style.display = 'none';
-                centerText.style.display = 'none';
-                noDataMsg.classList.remove('hidden');
-                return;
-            }
+                snapshot.forEach(docSnap => {
+                    const val = docSnap.data();
+                    if (!val.reparto || !val.sections) return;
 
-            noDataMsg.classList.add('hidden');
-            chartDiv.style.display = 'block';
-            centerText.style.display = 'block';
+                    if (!data[val.reparto]) {
+                        data[val.reparto] = { infermieri: [] };
+                    }
 
-            chart = initChart(chartData);
-            renderLegend();
+                    data[val.reparto].infermieri.push({
+                        nome: val.infermiere?.nome || "N/D",
+                        valutazioni: [val]
+                    });
+                });
+
+                const aggregatedCounts = window.loadAndAggregateDataFromObject(data);
+
+                if (!aggregatedCounts || Object.keys(aggregatedCounts).length === 0) {
+                    chartDiv.style.display = 'none';
+                    centerText.style.display = 'none';
+                    noDataMsg.classList.remove('hidden');
+                    if (window.chart) {
+                        try { window.chart.destroy(); } catch (e) { }
+                        window.chart = null;
+                    }
+                    return;
+                }
+
+                const chartData = window.prepareChartData
+                    ? window.prepareChartData(aggregatedCounts)
+                    : prepareChartData(aggregatedCounts);
+
+                if (!chartData || chartData.reparto.data.length === 0) {
+                    chartDiv.style.display = 'none';
+                    centerText.style.display = 'none';
+                    noDataMsg.classList.remove('hidden');
+                    if (window.chart) {
+                        try { window.chart.destroy(); } catch (e) { }
+                        window.chart = null;
+                    }
+                    return;
+                }
+
+                noDataMsg.classList.add('hidden');
+                chartDiv.style.display = 'block';
+                centerText.style.display = 'block';
+
+                // 🔁 distruggi grafico precedente prima di crearne uno nuovo
+                if (window.chart) {
+                    try { window.chart.destroy(); } catch (e) { }
+                }
+
+                window.chart = window.initChart
+                    ? window.initChart(chartData)
+                    : initChart(chartData);
+
+                if (window.renderLegend) {
+                    window.renderLegend();
+                }
+            });
         }
 
-        document.addEventListener('DOMContentLoaded', init);</script>
+        document.addEventListener('DOMContentLoaded', startRealtimeChart);</script>
 
 </body>
 </html>
-
